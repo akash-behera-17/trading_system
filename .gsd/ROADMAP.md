@@ -11,7 +11,7 @@
 ## Phases
 
 ### Phase 1: Environment & Data Pipeline
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Set up the project structure, dependencies, and data pipeline to fetch historical stock data via `yfinance` and engineer all required technical indicators (DMAs, RSI, MACD, Volume).
 **Requirements**: REQ-01
 
