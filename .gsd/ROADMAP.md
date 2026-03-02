@@ -31,5 +31,5 @@
 **Requirements**: REQ-04
 
 ### Phase 5: Demo Script & Documentation
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Create `predict.py` for inference on new data, and finalize all project documentation (the final report) for the supervisor.
