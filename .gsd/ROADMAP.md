@@ -37,12 +37,14 @@
 ---
 
 ### Phase 6: Deployment (Flask API & Streamlit UI)
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Deploy the trained Neuro-Symbolic Trading System using a Flask backend API for inference and a Streamlit frontend for user interaction.
 **Depends on**: Phase 5
 
 **Tasks**:
-- [ ] TBD (run /plan 6 to create)
+- [x] Plan 6.1: Flask Backend API
+- [x] Plan 6.2: Streamlit UI Frontend
 
 **Verification**:
-- TBD
+- API tested locally via `/predict` endpoint.
+- Streamlit UI created and integrated successfully.
