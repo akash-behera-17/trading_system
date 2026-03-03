@@ -33,3 +33,16 @@
 ### Phase 5: Demo Script & Documentation
 **Status**: ✅ Complete
 **Objective**: Create `predict.py` for inference on new data, and finalize all project documentation (the final report) for the supervisor.
+
+---
+
+### Phase 6: Deployment (Flask API & Streamlit UI)
+**Status**: ⬜ Not Started
+**Objective**: Deploy the trained Neuro-Symbolic Trading System using a Flask backend API for inference and a Streamlit frontend for user interaction.
+**Depends on**: Phase 5
+
+**Tasks**:
+- [ ] TBD (run /plan 6 to create)
+
+**Verification**:
+- TBD
