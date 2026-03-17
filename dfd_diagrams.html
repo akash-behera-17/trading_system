@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFD Level 0 & Level 1: Neuro-Symbolic Trading System</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body { font-family: sans-serif; margin: 40px; text-align: center; }
+        .mermaid { display: flex; justify-content: center; margin: 30px 0; }
+        .diagram-container { margin-bottom: 60px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #fafafa; }
+        h3 { color: #333; }
+        p { color: #555; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h2>Data Flow Diagrams (DFD)</h2>
+    <p><i>Note: ArgoUML is primarily designed for UML diagrams (Use Case, Class, Sequence, etc.). DFDs are structured analysis tools best viewed as standard flowcharts. You can interact with the diagrams below.</i></p>
+
+    <div class="diagram-container">
+        <h3>Context Diagram (Level 0 DFD)</h3>
+        <p>Shows the entire system as a single process interacting with external entities.</p>
+        <div class="mermaid">
+        flowchart LR
+            %% External Entities
+            User[User / Trader]
+            YF[Yahoo Finance API]
+            
+            %% System Process
+            System((0.0<br>Neuro-Symbolic<br>Trading System))
+            
+            %% Data Flows
+            User -- Ticker Symbol --> System
+            System -- Historic Data Request --> YF
+            YF -- Raw Stock Data --> System
+            System -- "Final Trading Signal<br>(Strong Buy, Sell, Wait)" --> User
+            
+            %% Styling
+            classDef entity fill:#f9f,stroke:#333,stroke-width:2px;
+            classDef process fill:#bbf,stroke:#333,stroke-width:2px;
+            class User,YF entity;
+            class System process;
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <h3>Level 1 DFD</h3>
+        <p>Breaks down the main system into detailed sub-processes, showing internal datastores.</p>
+        <div class="mermaid">
+        flowchart TD
+            %% External Entities
+            User[User / Trader]
+            YF[Yahoo Finance API]
+            
+            %% Processes
+            P1((1.0<br>Fetch<br>Market Data))
+            P2((2.0<br>Calculate<br>Technical Indicators))
+            P3((3.0<br>Evaluate<br>Trading Rules))
+            P4((4.0<br>Filter Anomalies<br>LSTM-Autoencoder))
+            P5((5.0<br>Generate Final<br>Prediction))
+            
+            %% Data Stores
+            D1[(D1. Raw Price Data)]
+            D2[(D2. Technical Features)]
+            D3[(D3. Trained Model)]
+            
+            %% Flows
+            User -- Ticker Symbol --> P1
+            P1 -- API Request --> YF
+            YF -- Historical OHLCV Data --> P1
+            P1 -- Raw Data --> D1
+            
+            D1 -- Raw Data --> P2
+            P2 -- Indicators (DMA, RSI, MACD) --> D2
+            
+            D2 -- Condition Features --> P3
+            P3 -- "Initial Signal<br>(Buy/Sell/Wait)" --> P5
+            P3 -- If Potential Buy Signal --> P4
+            
+            D2 -- Sequence Features --> P4
+            D3 -- Model Weights --> P4
+            P4 -- "Reconstruction Error<br>(Anomaly Yes/No)" --> P5
+            
+            P5 -- "Final Decision<br>(Strong Buy, Sell,<br>Wait, Avoid Trap)" --> User
+
+            %% Styling
+            classDef entity fill:#f9f,stroke:#333,stroke-width:2px;
+            classDef process fill:#bbf,stroke:#333,stroke-width:2px;
+            classDef store fill:#bfb,stroke:#333,stroke-width:2px;
+            class User,YF entity;
+            class P1,P2,P3,P4,P5 process;
+            class D1,D2,D3 store;
+        </div>
+    </div>
+</body>
+</html>

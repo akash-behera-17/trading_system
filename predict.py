@@ -26,15 +26,21 @@ class LSTMAutoencoder(nn.Module):
         decoded_out, _ = self.decoder(hidden_n_repeated)
         return decoded_out
 
-def fetch_recent_data(ticker, days=300):
+def fetch_recent_data(ticker, days=500):
     """Fetches recent data necessary to calculate up to a 200-Day Moving Average."""
     print(f"Fetching recent data for {ticker}...")
     end_date = datetime.now()
     start_date = end_date - timedelta(days=days)
     data = yf.download(ticker, start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'), progress=False)
     
+    # Handle yfinance MultiIndex columns (Price, Ticker)
     if isinstance(data.columns, pd.MultiIndex):
-        data.columns = data.columns.droplevel(1)
+        # We only want to drop the 'Ticker' level if it exists
+        try:
+            data.columns = data.columns.droplevel('Ticker')
+        except KeyError:
+            # Drop the second level if 'Ticker' name is not explicitly set
+            data.columns = data.columns.droplevel(1)
     
     if len(data) < 200:
         raise ValueError(f"Not enough data fetched for {ticker} to calculate 200 DMA.")
@@ -75,19 +81,26 @@ def predict_signal(ticker):
     print(f"Latest Date : {date}")
     print(f"Close Price : Rs. {current_close:.2f}\n")
     
-    # 3. Rule Engine (Mahesh Kaushik Strategy)
+    # Calculate % Difference from 200 DMA
+    pct_diff = ((latest_day['Close'] - latest_day['DMA_200']) * 100) / latest_day['DMA_200']
+    pct_diff = pct_diff.values[0]
+    
+    # 3. Rule Engine (Mahesh Kaushik Strategy with accommodated yfinance bounds)
+    # Note: Accommodating up to 15% due to yfinance vs Google Finance historical Adjusted Close discrepancies
     bull_condition = (
         (latest_day['Close'] > latest_day['DMA_50']) &
         (latest_day['DMA_50'] > latest_day['DMA_100']) &
         (latest_day['DMA_100'] > latest_day['DMA_200']) &
-        (latest_day['Close'] <= latest_day['DMA_200'] * 1.10)
+        (pct_diff >= 0.01) & 
+        (pct_diff <= 15.0)
     ).values[0]
     
     bear_condition = (
         (latest_day['Close'] < latest_day['DMA_50']) &
         (latest_day['DMA_50'] < latest_day['DMA_100']) &
         (latest_day['DMA_100'] < latest_day['DMA_200']) &
-        (latest_day['Close'] >= latest_day['DMA_200'] * 0.90)
+        (pct_diff >= -15.0) & 
+        (pct_diff <= -0.01)
     ).values[0]
     
     rule_signal = 0
@@ -133,10 +146,10 @@ def predict_signal(ticker):
         
         if error >= THRESHOLD:
             print(f"ML Filter Result  : ANOMALY DETECTED (Threshold = {THRESHOLD})")
-            print("Recommendation    : AVOID (BULL TRAP) ❌")
+            print("Recommendation    : AVOID (BULL TRAP)")
         else:
             print("ML Filter Result  : STRUCTURE VERIFIED")
-            print("Recommendation    : STRONG BUY ✅")
+            print("Recommendation    : STRONG BUY")
             
     except Exception as e:
         print(f"Error during ML filtering: {e}")

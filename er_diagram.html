@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ER Diagram: Neuro-Symbolic Trading System</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 40px;
+            text-align: center;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>ER Diagram: ML-Based Stock Price Direction Prediction</h2>
+    <div class="mermaid">
+    erDiagram
+        StockData ||--o{ TechnicalIndicators : "processed into"
+        TechnicalIndicators ||--o{ RuleEngineState : "evaluated by"
+        RuleEngineState }|--o| AutoencoderFilter : "triggers (if Rule_Buy)"
+        AutoencoderFilter ||--o{ PredictionResult : "generates final"
+        RuleEngineState ||--o{ PredictionResult : "generates final"
+
+        StockData {
+            string Ticker
+            date Date
+            float Open
+            float High
+            float Low
+            float Close
+            int Volume
+        }
+
+        TechnicalIndicators {
+            float DMA_50 "50-Day Moving Average"
+            float DMA_100 "100-Day Moving Average"
+            float DMA_200 "200-Day Moving Average"
+            float RSI "Relative Strength Index"
+            float MACD "Moving Average Convergence Divergence"
+            float MACD_Signal
+            float Volume_Change
+        }
+
+        RuleEngineState {
+            string MarketZone "Bullish, Bearish, Unconfirmed"
+            string InitialSignal "Rule_Buy, Rule_Sell, Wait"
+        }
+
+        AutoencoderFilter {
+            string ModelType "LSTM-Autoencoder"
+            float ReconstructionError "MSE"
+            float AnomalyThreshold "e.g., 70th percentile"
+            boolean IsAnomaly "True if Trap, False if Safe"
+        }
+
+        PredictionResult {
+            string Ticker
+            date PredictionDate
+            string FinalAction "STRONG BUY, SELL, WAIT, AVOID"
+        }
+    </div>
+</body>
+</html>

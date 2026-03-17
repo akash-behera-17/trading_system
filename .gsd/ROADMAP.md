@@ -1,7 +1,7 @@
 # ROADMAP.md
 
 > **Current Phase**: Not started
-> **Milestone**: v1.0
+> **Milestone**: v2.0
 
 ## Must-Haves (from SPEC)
 - [ ] Rule-based engine (Mahesh Kaushik strategy)
@@ -48,3 +48,35 @@
 **Verification**:
 - API tested locally via `/predict` endpoint.
 - Streamlit UI created and integrated successfully.
+
+---
+
+# Milestone: v2.0 (Professional Web UI)
+
+## Must-Haves
+- [ ] Login system
+- [ ] Company Search Bar
+- [ ] Streamlined Company Dashboard (Charts, Indicators, Caps, High/Low, Ratios, Pros/Cons)
+- [ ] Uncluttered, premium visual design
+
+## Phases
+
+### Phase 7: Frontend Architecture & Auth System
+**Status**: ⬜ Not Started
+**Objective**: Set up a modern frontend project (React/Vite or Next.js) with routing, state management, and basic authentication pages (Login/Signup).
+**Requirements**: REQ-UI-01
+
+### Phase 8: Home & Search Interfaces
+**Status**: ⬜ Not Started
+**Objective**: Build a clean, professional homepage with a central search component capable of querying the stock list and directing users to specific company dashboards.
+**Requirements**: REQ-UI-02
+
+### Phase 9: Simplified Professional Company Dashboard
+**Status**: ⬜ Not Started
+**Objective**: Replicate a clean, screener.in-style view containing interactive price charts, technical indicators, current market cap, high/low, key ratios, and a pros/cons section. Ensure the layout remains uncluttered.
+**Requirements**: REQ-UI-03
+
+### Phase 10: Backend API Integration
+**Status**: ⬜ Not Started
+**Objective**: Update the existing Flask API to serve all necessary fundamental metrics, pros/cons data, and ML signals to the new frontend dashboard.
+**Requirements**: REQ-UI-04

@@ -1,12 +1,12 @@
 # STATE.md
 
-> **Current Phase**: 6
-> **Goal**: Deploy the trained Neuro-Symbolic Trading System via Flask API and Streamlit UI.
+> **Current Phase**: Not started
+> **Goal**: Build a professional web application with an aesthetic comparable to screener.in, featuring user authentication, advanced search, and comprehensive uncluttered stock views.
 
 ## Current Position
-- **Phase**: Done (Deployment complete)
-- **Task**: Phase 6 executed and verified.
-- **Status**: Ready for Supervisor/User Review
+- **Milestone**: v2.0
+- **Phase**: Not started
+- **Status**: Milestone planned
 ## Last Session Summary
 Phase 6 executed successfully. Created `src/app.py` for the Flask REST API exposing model inference, and `ui/dashboard.py` for the Streamlit web dashboard. Integrated the two systems successfully for real-time inference.
 
