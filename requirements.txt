@@ -6,5 +6,9 @@ ta
 matplotlib
 flask
 flask-cors
+Flask-SQLAlchemy
+Flask-Bcrypt
+PyJWT
 requests
 streamlit
+torch

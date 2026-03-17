@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
@@ -12,6 +16,25 @@ import os
 
 app = Flask(__name__)
 CORS(app)
+
+# --- Database & Auth Configuration ---
+app.config['SECRET_KEY'] = 'dev-secret-key-change-in-prod'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///stock_ml.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+from src.extensions import db, bcrypt
+db.init_app(app)
+bcrypt.init_app(app)
+
+# Import models so SQLAlchemy knows about them
+from src.models.user import User
+
+with app.app_context():
+    db.create_all()
+
+# Register Blueprints
+from src.routes.auth_routes import auth_bp
+app.register_blueprint(auth_bp)
 
 # --- 1. Model Definitions & Setup ---
 
