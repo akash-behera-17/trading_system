@@ -13,6 +13,10 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const [aiData, setAiData] = useState(null);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiError, setAiError] = useState('');
+
     useEffect(() => {
         const fetchDashboard = async () => {
             try {
@@ -26,6 +30,22 @@ const Dashboard = () => {
             }
         };
         if (ticker) fetchDashboard();
+    }, [ticker]);
+
+    useEffect(() => {
+        const fetchAI = async () => {
+            try {
+                setAiLoading(true);
+                setAiError('');
+                const res = await axios.post(`http://localhost:5000/predict`, { ticker });
+                setAiData(res.data);
+            } catch (err) {
+                setAiError('Neuro-Symbolic AI Unavailable');
+            } finally {
+                setAiLoading(false);
+            }
+        };
+        if (ticker) fetchAI();
     }, [ticker]);
 
     if (!ticker) return <div className="p-8 text-center text-gray-500">No ticker selected. Please return to Home to search.</div>;
@@ -149,12 +169,30 @@ const Dashboard = () => {
                         </div>
 
                         {/* Neuro-Symbolic Callout Stub (Phase 10 integration) */}
-                        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 shadow-md text-white">
-                            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2 flex items-center">
+                        <div className={`rounded-3xl p-6 shadow-md text-white transition-colors duration-500 ${aiData?.ml_anomaly ? 'bg-gradient-to-br from-red-900 to-red-800' : 'bg-gradient-to-br from-gray-900 to-gray-800'}`}>
+                            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4 flex items-center">
                                 <ShieldAlert className="h-4 w-4 mr-2" />
-                                AI Inference Target
+                                Neuro-Symbolic Verdict
                             </h3>
-                            <p className="text-sm text-gray-300">Phase 10: Autoencoder and Expert System overlay will inject "Buy/Sell" classification directly into this pane.</p>
+
+                            {aiLoading ? (
+                                <div className="flex items-center space-x-3 animate-pulse py-4">
+                                    <Activity className="h-5 w-5 text-indigo-400" />
+                                    <span className="text-gray-300 font-medium tracking-wide">Running inference...</span>
+                                </div>
+                            ) : aiError ? (
+                                <p className="text-red-300 py-4 font-medium">{aiError}</p>
+                            ) : aiData ? (
+                                <div>
+                                    <p className={`text-2xl lg:text-3xl font-bold mb-5 ${aiData.final_recommendation === 'STRONG BUY' ? 'text-green-400' : aiData.final_recommendation === 'BUY' ? 'text-green-300' : aiData.final_recommendation.includes('AVOID') ? 'text-red-400' : 'text-yellow-400'}`}>
+                                        {aiData.final_recommendation}
+                                    </p>
+                                    <div className="space-y-3 text-sm text-gray-200 border-t border-gray-700/50 mt-4 pt-5">
+                                        <p className="flex flex-col"><span className="text-gray-500 uppercase text-xs font-bold tracking-wider mb-1">Expert System Rule</span> <span className="font-medium text-gray-300 leading-snug">{aiData.rule_description}</span></p>
+                                        <p className="flex justify-between items-center"><span className="text-gray-500 uppercase text-xs font-bold tracking-wider">ML Anomaly Filter</span> <span className={`font-bold px-2 py-1 rounded-md text-xs tracking-wider ${aiData.ml_anomaly ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300'}`}>{aiData.ml_anomaly ? 'DETECTED' : 'CLEAR'}</span></p>
+                                    </div>
+                                </div>
+                            ) : null}
                         </div>
 
                     </div>
