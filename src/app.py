@@ -34,7 +34,9 @@ with app.app_context():
 
 # Register Blueprints
 from src.routes.auth_routes import auth_bp
+from src.routes.stock_routes import stock_bp
 app.register_blueprint(auth_bp)
+app.register_blueprint(stock_bp)
 
 # --- 1. Model Definitions & Setup ---
 
