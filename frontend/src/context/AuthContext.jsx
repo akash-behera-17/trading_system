@@ -47,8 +47,26 @@ export const AuthProvider = ({ children }) => {
         setToken(null);
     };
 
+    const register = async (username, email, password) => {
+        try {
+            const response = await axios.post('http://localhost:5000/api/auth/register', {
+                username,
+                email,
+                password
+            });
+            // Normally after register one might login automatically, but let's just return success for the UI to handle
+            return { success: true };
+        } catch (error) {
+            console.error("Registration failed:", error);
+            return {
+                success: false,
+                error: error.response?.data?.error || "Registration failed due to server error"
+            };
+        }
+    }
+
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, register, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );
