@@ -70,8 +70,8 @@ def get_dashboard_data():
             "shortName": info.get('shortName', ticker)
         }
 
-        # 2. Historical Data (6 months)
-        hist = stock.history(period="6mo", interval="1d")
+        # 2. Historical Data (1 year for DMA200)
+        hist = stock.history(period="1y", interval="1d")
         if hist.empty:
             return jsonify({"error": f"No historical data found for {ticker}"}), 404
             

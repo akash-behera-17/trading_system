@@ -65,6 +65,11 @@ const SearchBar = () => {
                         setIsOpen(true);
                     }}
                     onFocus={() => setIsOpen(true)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && query.trim()) {
+                            handleSelect(query.toUpperCase());
+                        }
+                    }}
                 />
             </div>
 

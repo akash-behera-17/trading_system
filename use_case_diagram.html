@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UML Use Case Diagram: Neuro-Symbolic Trading System</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 40px;
+            text-align: center;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .diagram-container {
+            margin-bottom: 60px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+            display: inline-block;
+            text-align: left;
+            min-width: 800px;
+        }
+
+        h3 {
+            color: #333;
+            text-align: center;
+        }
+
+        p {
+            color: #555;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>UML Use Case Diagram: ML-Based Stock Price Direction Prediction</h2>
+    <p><i>This diagram outlines the system's intended behavior from the user's perspective, representing interactions
+            between actors and the system's formal use cases.</i></p>
+
+    <div class="diagram-container">
+        <h3>Primary Use Cases</h3>
+        <p>Shows how the Trader interacts with the system, and how internal use cases relate to each other.</p>
+        <div class="mermaid">
+            flowchart LR
+            %% Actors
+            Trader(("👤 Trader (User)"))
+            YF(("🌐 Yahoo Finance API"))
+
+            %% System Boundary
+            subgraph System [Neuro-Symbolic Trading System]
+            direction TB
+            UC1(["Predict Stock Direction (Main)"])
+            UC2(["Fetch Market Data"])
+            UC3(["Calculate Technical Indicators"])
+            UC4(["Evaluate Rule-Based Strategy"])
+            UC5(["Verify Signal via LSTM-Autoencoder"])
+            UC6(["Generate Final Recommendation"])
+            end
+
+            %% Actor to Use Case Interactions
+            Trader --- UC1
+            UC6 --- Trader
+
+            %% Use Case to Actor Interactions
+            UC2 --- YF
+
+            %% Includes & Extends (Relationships)
+            UC1 -. "«include»" .-> UC2
+            UC1 -. "«include»" .-> UC3
+            UC1 -. "«include»" .-> UC4
+            UC1 -. "«include»" .-> UC6
+
+            UC4 -. "«extend»<br>If Preliminary Buy" .-> UC5
+
+            %% Styling for Use Case Notation
+            classDef actor fill:#FFE4B5,stroke:#D2691E,stroke-width:2px,color:#000;
+            classDef usecase fill:#E6E6FA,stroke:#8A2BE2,stroke-width:2px,color:#000;
+
+            class Trader,YF actor;
+            class UC1,UC2,UC3,UC4,UC5,UC6 usecase;
+
+            %% System Boundary Styling
+            style System fill:#FFFFFF,stroke:#999,stroke-width:2px,stroke-dasharray: 5 5;
+        </div>
+    </div>
+</body>
+
+</html>

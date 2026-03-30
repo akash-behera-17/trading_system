@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UML Sequence Diagram: Neuro-Symbolic Trading System</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 40px;
+            text-align: center;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .diagram-container {
+            margin-bottom: 60px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+            display: inline-block;
+            text-align: left;
+            min-width: 800px;
+        }
+
+        h3 {
+            color: #333;
+            text-align: center;
+        }
+
+        p {
+            color: #555;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>UML Sequence Diagram: ML-Based Stock Price Direction Prediction</h2>
+    <p><i>This diagram outlines the chronological interactions between the trader (user), the core system backend, the
+            external Yahoo API, and internal deep learning filters during a single prediction sequence.</i></p>
+
+    <div class="diagram-container">
+        <h3>System Interaction Flow</h3>
+        <p>Follows the timeline from requesting a prediction to delivering the final trading signal.</p>
+        <div class="mermaid">
+            sequenceDiagram
+            actor Trader
+            participant API as System Backend
+            participant YF as Yahoo Finance API
+            participant Engine as Rule Engine
+            participant Auto as Autoencoder
+
+            Trader->>API: Request Prediction
+            API->>YF: Fetch Market Data
+            YF-->>API: Return Historical Data
+
+            Note over API: Calculate Indicators
+            API->>Engine: Send Features
+            Engine-->>API: Return Initial Signal
+
+            alt Initial Signal is Buy
+            API->>Auto: Pass Tensor Sequence
+            Note over Auto: Reconstruct Input
+            Auto-->>API: Return Error MSE
+
+            alt MSE exceeds Threshold
+            Note over API: Trap Detected
+            API-->>Trader: Warning AVOID Bull Trap
+            else MSE is safe
+            Note over API: Structure Verified
+            API-->>Trader: Recommendation STRONG BUY
+            end
+            else Initial Signal is not Buy
+            API-->>Trader: Recommendation SELL or WAIT
+            end
+        </div>
+    </div>
+</body>
+
+</html>

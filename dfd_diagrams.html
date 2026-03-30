@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,35 +10,60 @@
         mermaid.initialize({ startOnLoad: true, theme: 'default' });
     </script>
     <style>
-        body { font-family: sans-serif; margin: 40px; text-align: center; }
-        .mermaid { display: flex; justify-content: center; margin: 30px 0; }
-        .diagram-container { margin-bottom: 60px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #fafafa; }
-        h3 { color: #333; }
-        p { color: #555; font-size: 14px; }
+        body {
+            font-family: sans-serif;
+            margin: 40px;
+            text-align: center;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .diagram-container {
+            margin-bottom: 60px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+
+        h3 {
+            color: #333;
+        }
+
+        p {
+            color: #555;
+            font-size: 14px;
+        }
     </style>
 </head>
+
 <body>
     <h2>Data Flow Diagrams (DFD)</h2>
-    <p><i>Note: ArgoUML is primarily designed for UML diagrams (Use Case, Class, Sequence, etc.). DFDs are structured analysis tools best viewed as standard flowcharts. You can interact with the diagrams below.</i></p>
+    <p><i>Note: ArgoUML is primarily designed for UML diagrams (Use Case, Class, Sequence, etc.). DFDs are structured
+            analysis tools best viewed as standard flowcharts. You can interact with the diagrams below.</i></p>
 
     <div class="diagram-container">
         <h3>Context Diagram (Level 0 DFD)</h3>
         <p>Shows the entire system as a single process interacting with external entities.</p>
         <div class="mermaid">
-        flowchart LR
+            flowchart LR
             %% External Entities
             User[User / Trader]
             YF[Yahoo Finance API]
-            
+
             %% System Process
             System((0.0<br>Neuro-Symbolic<br>Trading System))
-            
+
             %% Data Flows
             User -- Ticker Symbol --> System
             System -- Historic Data Request --> YF
             YF -- Raw Stock Data --> System
             System -- "Final Trading Signal<br>(Strong Buy, Sell, Wait)" --> User
-            
+
             %% Styling
             classDef entity fill:#f9f,stroke:#333,stroke-width:2px;
             classDef process fill:#bbf,stroke:#333,stroke-width:2px;
@@ -50,40 +76,40 @@
         <h3>Level 1 DFD</h3>
         <p>Breaks down the main system into detailed sub-processes, showing internal datastores.</p>
         <div class="mermaid">
-        flowchart TD
+            flowchart TD
             %% External Entities
             User[User / Trader]
             YF[Yahoo Finance API]
-            
+
             %% Processes
             P1((1.0<br>Fetch<br>Market Data))
             P2((2.0<br>Calculate<br>Technical Indicators))
             P3((3.0<br>Evaluate<br>Trading Rules))
             P4((4.0<br>Filter Anomalies<br>LSTM-Autoencoder))
             P5((5.0<br>Generate Final<br>Prediction))
-            
+
             %% Data Stores
             D1[(D1. Raw Price Data)]
             D2[(D2. Technical Features)]
             D3[(D3. Trained Model)]
-            
+
             %% Flows
             User -- Ticker Symbol --> P1
             P1 -- API Request --> YF
             YF -- Historical OHLCV Data --> P1
             P1 -- Raw Data --> D1
-            
+
             D1 -- Raw Data --> P2
             P2 -- Indicators (DMA, RSI, MACD) --> D2
-            
+
             D2 -- Condition Features --> P3
             P3 -- "Initial Signal<br>(Buy/Sell/Wait)" --> P5
             P3 -- If Potential Buy Signal --> P4
-            
+
             D2 -- Sequence Features --> P4
             D3 -- Model Weights --> P4
             P4 -- "Reconstruction Error<br>(Anomaly Yes/No)" --> P5
-            
+
             P5 -- "Final Decision<br>(Strong Buy, Sell,<br>Wait, Avoid Trap)" --> User
 
             %% Styling
@@ -95,5 +121,93 @@
             class D1,D2,D3 store;
         </div>
     </div>
+
+    <div class="diagram-container">
+        <h3>Level 2 DFD: Process 2.0 (Calculate Technical Indicators)</h3>
+        <p>Details how the raw price data is transformed into technical features used by the models.</p>
+        <div class="mermaid">
+            flowchart TD
+            %% Inputs
+            D1[(D1. Raw Price Data)]
+
+            %% Processes
+            P2_1((2.1<br>Compute<br>Moving Averages))
+            P2_2((2.2<br>Compute<br>Momentum Oscillators))
+            P2_3((2.3<br>Compute<br>Volume Metrics))
+            P2_4((2.4<br>Format Data<br>For Engine))
+
+            %% Stores
+            D2[(D2. Technical Features)]
+
+            %% Flows
+            D1 -- Close Prices --> P2_1
+            P2_1 -- 50/100/200 DMA --> P2_4
+
+            D1 -- High/Low/Close --> P2_2
+            P2_2 -- RSI & MACD --> P2_4
+
+            D1 -- Volume --> P2_3
+            P2_3 -- Volume Change % --> P2_4
+
+            P2_4 -- Consolidated Features --> D2
+
+            %% Styling
+            classDef process fill:#bbf,stroke:#333,stroke-width:2px;
+            classDef store fill:#bfb,stroke:#333,stroke-width:2px;
+            class P2_1,P2_2,P2_3,P2_4 process;
+            class D1,D2 store;
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <h3>Level 2 DFD: Process 3.0 & 4.0 (Rule Evaluation & Neural Veto)</h3>
+        <p>Details the core Neuro-Symbolic logic: checking deterministic rules first, then filtering via Deep Learning.
+        </p>
+        <div class="mermaid">
+            flowchart TD
+            %% Inputs
+            D2[(D2. Technical Features)]
+            D3[(D3. Trained Model)]
+
+            %% Processes (3.0 Breakdown)
+            P3_1((3.1<br>Check Zone<br>Conditions))
+            P3_2((3.2<br>Generate<br>Rule Signal))
+
+            %% Processes (4.0 Breakdown)
+            P4_1((4.1<br>Scale & Format<br>Sequence))
+            P4_2((4.2<br>LSTM-Autoencoder<br>Forward Pass))
+            P4_3((4.3<br>Calculate<br>Reconstruction Error))
+            P4_4((4.4<br>Apply Threshold<br>Logic))
+
+            %% Outputs
+            FinalOutput[Process 5.0:<br>Generate Final Prediction]
+
+            %% Flows for Rule Engine (3.0)
+            D2 -- Current Day Indicators --> P3_1
+            P3_1 -- Market Zone<br>(Bullish/Bearish) --> P3_2
+            P3_2 -- Initial Signal --> FinalOutput
+
+            %% Trigger Neural Filter
+            P3_2 -- If Initial Signal == Rule_Buy --> P4_1
+
+            %% Flows for Anomaly Filter (4.0)
+            D2 -- T-n Historical Sequence --> P4_1
+            P4_1 -- Tensor Data --> P4_2
+            D3 -- Weights --> P4_2
+            P4_2 -- Reconstructed Output --> P4_3
+            P4_1 -- Original Input --> P4_3
+            P4_3 -- MSE Value --> P4_4
+            P4_4 -- Anomaly Boolean --> FinalOutput
+
+            %% Styling
+            classDef process fill:#bbf,stroke:#333,stroke-width:2px;
+            classDef store fill:#bfb,stroke:#333,stroke-width:2px;
+            classDef external fill:#f9f,stroke:#333,stroke-width:2px;
+            class P3_1,P3_2,P4_1,P4_2,P4_3,P4_4 process;
+            class D2,D3 store;
+            class FinalOutput external;
+        </div>
+    </div>
 </body>
+
 </html>
