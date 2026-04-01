@@ -49,43 +49,61 @@
 
 <body>
     <h2>UML Sequence Diagram: ML-Based Stock Price Direction Prediction</h2>
-    <p><i>This diagram outlines the chronological interactions between the trader (user), the core system backend, the
-            external Yahoo API, and internal deep learning filters during a single prediction sequence.</i></p>
+    <p><i>This formal sequence diagram illustrates the step-by-step chronological operations, internal processing steps, and cross-component interactions in a single prediction lifecycle.</i></p>
 
     <div class="diagram-container">
         <h3>System Interaction Flow</h3>
-        <p>Follows the timeline from requesting a prediction to delivering the final trading signal.</p>
+        <p>Demonstrates data fetching, rule evaluation, and LSTM verification mechanics.</p>
         <div class="mermaid">
             sequenceDiagram
-            actor Trader
-            participant API as System Backend
-            participant YF as Yahoo Finance API
-            participant Engine as Rule Engine
-            participant Auto as Autoencoder
-
-            Trader->>API: Request Prediction
-            API->>YF: Fetch Market Data
-            YF-->>API: Return Historical Data
-
-            Note over API: Calculate Indicators
-            API->>Engine: Send Features
-            Engine-->>API: Return Initial Signal
-
-            alt Initial Signal is Buy
-            API->>Auto: Pass Tensor Sequence
-            Note over Auto: Reconstruct Input
-            Auto-->>API: Return Error MSE
-
-            alt MSE exceeds Threshold
-            Note over API: Trap Detected
-            API-->>Trader: Warning AVOID Bull Trap
-            else MSE is safe
-            Note over API: Structure Verified
-            API-->>Trader: Recommendation STRONG BUY
-            end
-            else Initial Signal is not Buy
-            API-->>Trader: Recommendation SELL or WAIT
-            end
+                autonumber
+                
+                actor Trader
+                participant API as Main System (predict.py)
+                participant YF as Yahoo Finance API
+                participant RuleEngine as Rule-Based Expert System
+                participant Autoencoder as LSTM-Autoencoder
+                
+                Trader->>+API: Request Prediction (Ticker)
+                
+                %% Data Fetching Phase
+                API->>+YF: Request Historical OHLCV Data
+                YF-->>-API: Complete OHLCV Dataset
+                
+                %% Processing Phase
+                API->>API: Calculate Technical Indicators (DMA, RSI, MACD, Vol)
+                API->>API: Format Features (Current Day Data)
+                
+                %% Rule Engine Strategy
+                API->>+RuleEngine: Send Prepared Indicators
+                RuleEngine->>RuleEngine: Evaluate Market Zone Logic
+                RuleEngine-->>-API: Return Initial Signal (Buy/Sell/Wait)
+                
+                %% Deep Learning Veto Logic
+                alt Initial Signal == Buy
+                    API->>API: Scale & Shape T-n Sequence into Tensor
+                    
+                    API->>+Autoencoder: Input Sequence Tensor
+                    Autoencoder->>Autoencoder: Encode Input to Latent Space
+                    Autoencoder->>Autoencoder: Decode to Reconstructed Output
+                    Autoencoder->>Autoencoder: Calculate Mean Squared Error (MSE)
+                    Autoencoder-->>-API: Return Reconstruction Error (MSE)
+                    
+                    API->>API: Compare MSE against Anomaly Threshold
+                    
+                    alt MSE > Threshold
+                        API->>API: Detect Anomaly (Bull Trap)
+                        API-->>Trader: Final Result: AVOID (False Signal)
+                    else MSE <= Threshold
+                        API->>API: Verify Clean Structure
+                        API-->>Trader: Final Result: STRONG BUY
+                    end
+                    
+                else Initial Signal == Sell
+                    API-->>Trader: Final Result: SELL
+                else Initial Signal == Wait
+                    API-->>-Trader: Final Result: WAIT
+                end
         </div>
     </div>
 </body>

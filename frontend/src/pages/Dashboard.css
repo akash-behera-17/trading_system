@@ -1,0 +1,523 @@
+/* ============================================
+   Dashboard.css — Premium Dark Theme
+   Matching the homepage's sleek dark aesthetic
+   ============================================ */
+
+.dashboard {
+  min-height: 100vh;
+  background: #0a0a0f;
+  color: #ffffff;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  padding-bottom: 80px;
+}
+
+/* ── Nav Bar ── */
+.dash-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 14px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dash-nav a,
+.dash-nav button {
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dash-nav .back-link {
+  color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.dash-nav .back-link:hover {
+  color: #a5b4fc;
+  border-color: rgba(99,102,241,0.3);
+}
+
+.dash-nav .logout-btn {
+  color: #f87171;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+.dash-nav .logout-btn:hover {
+  background: rgba(239,68,68,0.15);
+  border-color: rgba(239,68,68,0.4);
+}
+
+/* ── Hero Header ── */
+.dash-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.dash-header .stock-info h1 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 8px;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.7) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dash-header .stock-meta {
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  letter-spacing: 0.05em;
+}
+
+.dash-header .price-area {
+  text-align: right;
+}
+
+.dash-header .price-value {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.dash-header .price-change {
+  font-size: 14px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  margin-top: 4px;
+}
+
+.dash-header .price-change.up { color: #34d399; }
+.dash-header .price-change.down { color: #f87171; }
+
+.dash-header .price-range {
+  font-size: 11px;
+  color: rgba(255,255,255,0.25);
+  margin-top: 6px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+/* ── Separator Line ── */
+.dash-divider {
+  max-width: 1200px;
+  margin: 24px auto 0;
+  padding: 0 24px;
+}
+
+.dash-divider hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent);
+}
+
+/* ── Verdict Banner ── */
+.verdict-card {
+  max-width: 1200px;
+  margin: 24px auto 0;
+  padding: 0 24px;
+}
+
+.verdict-inner {
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.verdict-inner.neutral {
+  background: rgba(99,102,241,0.08);
+  border: 1px solid rgba(99,102,241,0.2);
+}
+
+.verdict-inner.bullish {
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.2);
+}
+
+.verdict-inner.bearish {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+.verdict-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+}
+
+.verdict-inner.neutral .verdict-label { color: #818cf8; }
+.verdict-inner.bullish .verdict-label { color: #34d399; }
+.verdict-inner.bearish .verdict-label { color: #f87171; }
+
+.verdict-text {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.verdict-inner.neutral .verdict-text { color: #a5b4fc; }
+.verdict-inner.bullish .verdict-text { color: #34d399; }
+.verdict-inner.bearish .verdict-text { color: #f87171; }
+
+.verdict-conf {
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  margin-top: 4px;
+}
+
+.verdict-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 20px;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+}
+
+.verdict-inner.neutral .verdict-badge {
+  background: rgba(99,102,241,0.15);
+  color: #a5b4fc;
+}
+
+.verdict-inner.bullish .verdict-badge {
+  background: rgba(34,197,94,0.15);
+  color: #34d399;
+}
+
+.verdict-inner.bearish .verdict-badge {
+  background: rgba(239,68,68,0.15);
+  color: #f87171;
+}
+
+/* ── Content Container ── */
+.dash-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── Section Title ── */
+.sec-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.3);
+  margin: 40px 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sec-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+}
+
+/* ── Glass Card ── */
+.glass-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 24px;
+  transition: border-color 0.3s;
+}
+
+.glass-card:hover {
+  border-color: rgba(99,102,241,0.15);
+}
+
+.glass-card h3 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.35);
+  margin: 0 0 16px;
+}
+
+/* ── Grids ── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* ── Data Rows ── */
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 14px;
+}
+
+.data-row:last-child { border-bottom: none; }
+
+.data-row .label {
+  color: rgba(255,255,255,0.4);
+}
+
+.data-row .value {
+  font-weight: 600;
+  text-align: right;
+  max-width: 60%;
+}
+
+.text-green { color: #34d399 !important; }
+.text-red { color: #f87171 !important; }
+.text-muted { color: rgba(255,255,255,0.4) !important; }
+.text-indigo { color: #a5b4fc !important; }
+
+/* ── MA Rows ── */
+.ma-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 14px;
+}
+
+.ma-row:last-child { border-bottom: none; }
+
+.ma-name {
+  min-width: 100px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+}
+
+.ma-desc {
+  flex: 1;
+  color: rgba(255,255,255,0.35);
+  font-size: 13px;
+}
+
+.ma-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+.ma-badge.bull {
+  background: rgba(34,197,94,0.12);
+  color: #34d399;
+}
+
+.ma-badge.bear {
+  background: rgba(239,68,68,0.12);
+  color: #f87171;
+}
+
+.ma-badge.neut {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.4);
+}
+
+/* ── Note Box ── */
+.info-note {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: rgba(99,102,241,0.06);
+  border: 1px solid rgba(99,102,241,0.1);
+  border-radius: 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.6;
+}
+
+/* ── RSI Gauge ── */
+.rsi-big {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.rsi-max {
+  font-size: 16px;
+  color: rgba(255,255,255,0.25);
+}
+
+.progress-track {
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.rsi-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.2);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Metric Cards ── */
+.metric-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.3s, transform 0.2s;
+}
+
+.metric-card:hover {
+  border-color: rgba(99,102,241,0.2);
+  transform: translateY(-2px);
+}
+
+.metric-card .mc-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.metric-card .mc-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ── Fibonacci ── */
+.fib-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.fib-label {
+  min-width: 80px;
+  color: rgba(255,255,255,0.35);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+.fib-track {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  position: relative;
+}
+
+.fib-dot {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 11px;
+  border-radius: 2px;
+  background: #818cf8;
+}
+
+.fib-price {
+  min-width: 70px;
+  text-align: right;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+
+/* ── Chart ── */
+.chart-wrapper {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+/* ── Footnote ── */
+.dash-footnote {
+  max-width: 1200px;
+  margin: 40px auto 0;
+  padding: 0 24px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.15);
+  line-height: 1.6;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding-top: 20px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Loading ── */
+.dash-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  gap: 16px;
+}
+
+.dash-loading .spin-ring {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255,255,255,0.06);
+  border-top: 3px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.dash-loading span {
+  color: rgba(255,255,255,0.3);
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .dash-header { flex-direction: column; }
+  .dash-header .price-area { text-align: left; }
+  .verdict-inner { flex-direction: column; align-items: flex-start; }
+  .grid-2 { grid-template-columns: 1fr; }
+}

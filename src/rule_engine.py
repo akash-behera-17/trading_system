@@ -16,20 +16,33 @@ def apply_strategy(input_path: str = "data/processed_stock_data.csv", output_pat
     print("Loading processed data for rule evaluation...")
     df = pd.read_csv(input_path, index_col=0, parse_dates=True)
     
-    # Define conditions
-    # Bull condition
+    # Define conditions based on confluence (Opus 4.6 inspired)
+    
+    # Bull condition:
+    # 1. Trend: Long term MAs aligned + price above 20-day SMA
+    # 2. Oscillators: RSI not overbought, MACD is bullish
+    # 3. Value/Volatility: Price is below the Upper Bollinger Band (not stretched)
     bull_condition = (
         (df['Close'] > df['DMA_50']) &
-        (df['DMA_50'] > df['DMA_100']) &
-        (df['DMA_100'] > df['DMA_200']) &
+        (df['DMA_50'] > df['DMA_200']) &
+        (df['Close'] > df['DMA_20']) &
+        (df['RSI_14'] > 40) & (df['RSI_14'] < 70) &
+        (df['MACD'] > df['MACD_signal']) &
+        (df['Close'] <= df['Bollinger_Upper']) &
         (df['Close'] <= df['DMA_200'] * 1.10)
     )
     
-    # Bear condition
+    # Bear condition:
+    # 1. Trend: Long term MAs aligned + price below 20-day SMA
+    # 2. Oscillators: RSI not oversold, MACD is bearish
+    # 3. Value/Volatility: Price is above the Lower Bollinger Band (not completely flushed out)
     bear_condition = (
         (df['Close'] < df['DMA_50']) &
-        (df['DMA_50'] < df['DMA_100']) &
-        (df['DMA_100'] < df['DMA_200']) &
+        (df['DMA_50'] < df['DMA_200']) &
+        (df['Close'] < df['DMA_20']) &
+        (df['RSI_14'] < 60) & (df['RSI_14'] > 30) &
+        (df['MACD'] < df['MACD_signal']) &
+        (df['Close'] >= df['Bollinger_Lower']) &
         (df['Close'] >= df['DMA_200'] * 0.90)
     )
     

@@ -23,6 +23,7 @@ def engineer_features(input_path: str = "data/raw_stock_data.csv", output_path: 
     print("Calculating technical indicators...")
     
     # 1. Daily Moving Averages (DMA)
+    df['DMA_20'] = df['Close'].rolling(window=20).mean()
     df['DMA_50'] = df['Close'].rolling(window=50).mean()
     df['DMA_100'] = df['Close'].rolling(window=100).mean()
     df['DMA_200'] = df['Close'].rolling(window=200).mean()
@@ -37,6 +38,20 @@ def engineer_features(input_path: str = "data/raw_stock_data.csv", output_path: 
     
     # 4. Volume Change Percentage
     df['Volume_Change_Pct'] = df['Volume'].pct_change() * 100
+
+    # 5. Bollinger Bands (20, 2)
+    bollinger = ta.volatility.BollingerBands(close=df['Close'], window=20, window_dev=2)
+    df['Bollinger_Upper'] = bollinger.bollinger_hband()
+    df['Bollinger_Middle'] = bollinger.bollinger_mavg()
+    df['Bollinger_Lower'] = bollinger.bollinger_lband()
+
+    # 6. 52-Week High and Low (252 trading days)
+    df['52W_High'] = df['Close'].rolling(window=252).max()
+    df['52W_Low'] = df['Close'].rolling(window=252).min()
+    
+    # Distance to 52-Week High and Low (percentage)
+    df['Distance_to_52W_High'] = (df['Close'] - df['52W_High']) / df['52W_High']
+    df['Distance_to_52W_Low'] = (df['Close'] - df['52W_Low']) / df['52W_Low']
     
     # Drop NaNs created by rolling windows (e.g., first 200 days will be NaN due to DMA_200)
     print(f"Rows before dropping NaNs: {len(df)}")

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sun Pharma — Technical Analysis Report</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface2: #f1efe8;
+    --border: rgba(0,0,0,0.10);
+    --border-md: rgba(0,0,0,0.18);
+    --text: #1a1a18;
+    --muted: #5f5e5a;
+    --hint: #888780;
+    --bull: #0f6e56;
+    --bull-bg: #e1f5ee;
+    --bear: #993c1d;
+    --bear-bg: #faece7;
+    --neut: #5f5e5a;
+    --neut-bg: #f1efe8;
+    --blue: #185fa5;
+    --blue-bg: #e6f1fb;
+    --amber: #854f0b;
+    --amber-bg: #faeeda;
+    --amber-border: #ba7517;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    font-family: 'Georgia', 'Times New Roman', serif;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+  .page { max-width: 900px; margin: 0 auto; }
+
+  /* ── Header ── */
+  .header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+    border-bottom: 1.5px solid var(--text);
+    padding-bottom: 1.25rem; margin-bottom: 1.5rem;
+  }
+  .ticker-block h1 {
+    font-size: 26px; font-weight: 700; font-family: 'Georgia', serif;
+    letter-spacing: -0.02em; color: var(--text);
+  }
+  .ticker-block p { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: 'Courier New', monospace; }
+  .price-block { text-align: right; }
+  .price-block .price { font-size: 32px; font-weight: 700; font-family: 'Georgia', serif; color: var(--text); }
+  .price-block .change { font-size: 13px; color: var(--bear); margin-top: 2px; font-family: 'Courier New', monospace; }
+  .price-block .range { font-size: 11px; color: var(--hint); margin-top: 3px; font-family: 'Courier New', monospace; }
+
+  /* ── Verdict Banner ── */
+  .verdict-banner {
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+    margin-bottom: 1.75rem;
+  }
+  .verdict-banner .label { font-size: 10px; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
+  .verdict-banner .rating { font-size: 20px; font-weight: 700; color: #633806; font-family: 'Georgia', serif; }
+  .verdict-banner .conf { font-size: 12px; color: var(--amber); margin-top: 3px; }
+  .badge { font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 20px; }
+  .badge-bull { background: var(--bull-bg); color: var(--bull); }
+  .badge-bear { background: var(--bear-bg); color: var(--bear); }
+  .badge-neut { background: var(--neut-bg); color: var(--neut); }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); }
+
+  /* ── Section title ── */
+  .section-title {
+    font-size: 10px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    margin: 1.75rem 0 0.75rem;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border-md); }
+
+  /* ── Grids ── */
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 12px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+  }
+  .card h3 {
+    font-size: 10px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 12px; font-family: 'Courier New', monospace;
+  }
+
+  /* ── Metric card ── */
+  .metric-card { background: var(--surface2); border-radius: var(--radius-md); padding: 0.9rem; }
+  .metric-card .mlabel { font-size: 10px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.07em; font-family: 'Courier New', monospace; }
+  .metric-card .mvalue { font-size: 18px; font-weight: 700; color: var(--text); font-family: 'Georgia', serif; }
+  .metric-card .msub { font-size: 11px; margin-top: 3px; }
+  .bull { color: var(--bull); }
+  .bear { color: var(--bear); }
+  .neut { color: var(--neut); }
+
+  /* ── Table rows ── */
+  .row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0; border-bottom: 0.5px solid var(--border);
+    font-size: 13px;
+  }
+  .row:last-child { border-bottom: none; }
+  .row .rlabel { color: var(--muted); }
+  .row .rval { font-weight: 600; color: var(--text); text-align: right; max-width: 60%; }
+
+  /* ── Progress bar ── */
+  .progress-bar { height: 6px; border-radius: 4px; background: var(--border); margin-top: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; }
+
+  /* ── MA rows ── */
+  .ma-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 13px;
+  }
+  .ma-row:last-child { border-bottom: none; }
+  .ma-label { min-width: 90px; font-weight: 600; font-family: 'Courier New', monospace; font-size: 12px; }
+  .ma-desc { flex: 1; color: var(--muted); font-size: 12px; }
+  .ma-pill { font-size: 10px; padding: 3px 9px; border-radius: 20px; font-weight: 700; white-space: nowrap; letter-spacing: 0.04em; }
+
+  /* ── Fib bars ── */
+  .fib-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+  .fib-label { min-width: 72px; color: var(--muted); font-family: 'Courier New', monospace; }
+  .fib-line { flex: 1; height: 5px; border-radius: 3px; position: relative; }
+  .fib-marker { position: absolute; top: -3px; width: 2px; height: 11px; border-radius: 1px; background: #185fa5; }
+  .fib-price { min-width: 64px; text-align: right; font-weight: 700; color: var(--text); font-family: 'Courier New', monospace; }
+
+  /* ── Trade plan ── */
+  .trade-plan {
+    background: var(--surface2);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-top: 1rem;
+  }
+  .trade-plan h3 { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.06em; font-family: 'Courier New', monospace; }
+  .tp-row { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; font-size: 13px; }
+  .tp-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .tp-label { color: var(--muted); min-width: 110px; font-size: 12px; }
+  .tp-val { font-weight: 700; color: var(--text); font-family: 'Courier New', monospace; }
+  .tp-note { font-size: 11px; color: var(--hint); margin-left: auto; text-align: right; max-width: 200px; }
+
+  /* ── R:R Box ── */
+  .rr-box { display: flex; border-radius: var(--radius-md); overflow: hidden; height: 34px; margin-top: 10px; }
+  .rr-risk { flex: 1; background: var(--bear-bg); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--bear); }
+  .rr-reward { flex: 3; background: var(--bull-bg); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--bull); }
+  .rr-note { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* ── Footnote ── */
+  .footnote {
+    font-size: 11px; color: var(--hint); margin-top: 2rem;
+    line-height: 1.6; border-top: 0.5px solid var(--border-md);
+    padding-top: 1rem; font-family: 'Courier New', monospace;
+  }
+
+  /* ── Callout note ── */
+  .note-box {
+    margin-top: 10px; padding: 8px 12px;
+    background: var(--surface2); border-radius: var(--radius-md);
+    font-size: 12px; color: var(--muted); line-height: 1.5;
+  }
+
+  @media (max-width: 480px) {
+    .header { flex-direction: column; }
+    .price-block { text-align: left; }
+    .verdict-banner { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="ticker-block">
+      <h1>Sun Pharmaceutical Industries</h1>
+      <p>NSE: SUNPHARMA &nbsp;|&nbsp; BSE: 524715 &nbsp;|&nbsp; Sector: Pharmaceuticals &nbsp;|&nbsp; As of 30 Mar 2026</p>
+    </div>
+    <div class="price-block">
+      <div class="price">₹1,778.70</div>
+      <div class="change">▼ −14.90 &nbsp;(−0.83%) today</div>
+      <div class="range">52W Range: ₹1,548 – ₹1,851</div>
+    </div>
+  </div>
+
+  <!-- Verdict Banner -->
+  <div class="verdict-banner">
+    <div>
+      <div class="label">Overall Verdict</div>
+      <div class="rating">⚡ NEUTRAL → CAUTIOUS BUY</div>
+      <div class="conf">Confidence: 62% &nbsp;|&nbsp; Setup: Recovery within base formation</div>
+    </div>
+    <span class="badge badge-neut">HOLD / ACCUMULATE ON DIPS</span>
+  </div>
+
+  <!-- Trend Analysis -->
+  <div class="section-title">Trend Analysis — Multi-Timeframe</div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Timeframe Trend Direction</h3>
+      <div class="row"><span class="rlabel">Daily</span><span class="rval neut">Sideways / Recovering</span></div>
+      <div class="row"><span class="rlabel">Weekly</span><span class="rval neut">Base-building after correction</span></div>
+      <div class="row"><span class="rlabel">Monthly</span><span class="rval bull">Mildly Bullish — structural uptrend intact</span></div>
+      <div class="row"><span class="rlabel">1-Year Return</span><span class="rval bull">+2.49%</span></div>
+      <div class="row"><span class="rlabel">YTD</span><span class="rval bull">+2.96% (vs Sensex −11.7%)</span></div>
+    </div>
+    <div class="card">
+      <h3>Support &amp; Resistance Levels</h3>
+      <div class="row"><span class="rlabel">Strong Resistance</span><span class="rval bear">₹1,851 (52W High)</span></div>
+      <div class="row"><span class="rlabel">Resistance</span><span class="rval bear">₹1,800 – ₹1,820 (round level)</span></div>
+      <div class="row"><span class="rlabel">Pivot / Current zone</span><span class="rval neut">₹1,720 – ₹1,780</span></div>
+      <div class="row"><span class="rlabel">Support 1</span><span class="rval bull">₹1,660 (short-term MA)</span></div>
+      <div class="row"><span class="rlabel">Support 2</span><span class="rval bull">₹1,614 (accumulation base)</span></div>
+      <div class="row"><span class="rlabel">Strong Support</span><span class="rval bull">₹1,548 (52W Low)</span></div>
+    </div>
+  </div>
+
+  <!-- Moving Averages -->
+  <div class="section-title">Moving Average Analysis</div>
+  <div class="card" style="margin-bottom:12px;">
+    <h3>MA Crossover Signals — Current Price ₹1,778.70</h3>
+    <div class="ma-row">
+      <div class="ma-label">5-Day MA</div>
+      <div class="ma-desc">~₹1,590 — price trading well above</div>
+      <span class="ma-pill badge-bull">Bullish signal</span>
+    </div>
+    <div class="ma-row">
+      <div class="ma-label">50-Day MA</div>
+      <div class="ma-desc">₹1,720 — price above; dynamic support</div>
+      <span class="ma-pill badge-bull">Bullish signal</span>
+    </div>
+    <div class="ma-row">
+      <div class="ma-label">100-Day MA</div>
+      <div class="ma-desc">≈₹1,710 — price just above</div>
+      <span class="ma-pill badge-neut">Neutral</span>
+    </div>
+    <div class="ma-row">
+      <div class="ma-label">200-Day MA</div>
+      <div class="ma-desc">₹1,695 — price above; long-term bullish</div>
+      <span class="ma-pill badge-bull">Bullish signal</span>
+    </div>
+    <div class="note-box">Price is currently trading above all key MAs. The 50-DMA (₹1,720) has recently acted as a launch pad. No death cross in sight — bullish alignment developing.</div>
+  </div>
+
+  <!-- Momentum Indicators -->
+  <div class="section-title">Momentum Indicators</div>
+  <div class="grid2">
+    <div class="card">
+      <h3>RSI (14-day)</h3>
+      <div style="font-size:28px;font-weight:700;color:var(--text);font-family:'Georgia',serif;">~52 <span style="font-size:14px;color:var(--muted);">/ 100</span></div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:52%;background:#378add;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--hint);margin-top:4px;font-family:'Courier New',monospace;"><span>Oversold 30</span><span>Neutral</span><span>Overbought 70</span></div>
+      <div class="note-box">Recovering from oversold zone (~42 in Feb). Mid-band signals neither exhaustion nor euphoria. Room to run toward 60–65 before resistance.</div>
+    </div>
+    <div class="card">
+      <h3>MACD</h3>
+      <div class="row"><span class="rlabel">Signal</span><span class="rval bull">Buy (3-month MACD crossover active)</span></div>
+      <div class="row"><span class="rlabel">MACD line</span><span class="rval">−8.19 (turning up)</span></div>
+      <div class="row"><span class="rlabel">Histogram</span><span class="rval bull">Narrowing → bullish divergence</span></div>
+      <div class="note-box">MACD crossed bullish on daily in late Jan from a pivot bottom. 3-month MACD confirms medium-term turn. Watch for signal line crossover to confirm momentum.</div>
+    </div>
+    <div class="card">
+      <h3>Bollinger Bands</h3>
+      <div class="row"><span class="rlabel">Upper Band</span><span class="rval bear">~₹1,870</span></div>
+      <div class="row"><span class="rlabel">Middle Band (20MA)</span><span class="rval neut">~₹1,750</span></div>
+      <div class="row"><span class="rlabel">Lower Band</span><span class="rval bull">~₹1,630</span></div>
+      <div class="row"><span class="rlabel">Band width</span><span class="rval neut">Moderate — consolidation phase</span></div>
+      <div class="note-box">Price is near the middle band on weekly, suggesting equilibrium. A sustained close above ₹1,800 targets the upper band. Weekly bands lean mildly bearish — no breakout yet.</div>
+    </div>
+    <div class="card">
+      <h3>Volume Analysis</h3>
+      <div class="row"><span class="rlabel">Recent trend</span><span class="rval bull">Volume declining on down days ✓</span></div>
+      <div class="row"><span class="rlabel">Rally volume</span><span class="rval neut">Average — not exceptional</span></div>
+      <div class="row"><span class="rlabel">Signal</span><span class="rval bull">Sellers losing steam</span></div>
+      <div class="note-box">Post-Q3 FY26 earnings rally (3.13% on strong results) showed conviction buying. FPIs were net buyers in Jan. Volume falling with price on pullbacks = no distribution present.</div>
+    </div>
+  </div>
+
+  <!-- Chart Patterns & Fibonacci -->
+  <div class="section-title">Chart Patterns &amp; Fibonacci Retracement</div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Pattern Identification</h3>
+      <div class="row"><span class="rlabel">Weekly pattern</span><span class="rval bull">Base formation / rounding bottom</span></div>
+      <div class="row"><span class="rlabel">Daily pattern</span><span class="rval bull">Higher lows since Jan 29 pivot</span></div>
+      <div class="row"><span class="rlabel">Breakout trigger</span><span class="rval neut">Close above ₹1,800 on volume</span></div>
+      <div class="row"><span class="rlabel">Weekly pivot</span><span class="rval">₹1,594 (Fib pivot point)</span></div>
+      <div class="note-box">Stock appears to be completing a base formation after correcting from ₹1,851 high. A weekly breakout above ₹1,800 would be a strong confirmation signal.</div>
+    </div>
+    <div class="card">
+      <h3>Fibonacci Retracement — Swing (₹1,548 → ₹1,851)</h3>
+      <div style="margin-top:6px;">
+        <div class="fib-bar"><span class="fib-label">0% (base)</span><div class="fib-line" style="background:#e1f5ee;"><div class="fib-marker" style="left:0%;"></div></div><span class="fib-price">₹1,548</span></div>
+        <div class="fib-bar"><span class="fib-label">23.6%</span><div class="fib-line" style="background:#b5d4f4;"><div class="fib-marker" style="left:23.6%;"></div></div><span class="fib-price">₹1,620</span></div>
+        <div class="fib-bar"><span class="fib-label">38.2%</span><div class="fib-line" style="background:#85b7eb;"><div class="fib-marker" style="left:38.2%;"></div></div><span class="fib-price">₹1,667</span></div>
+        <div class="fib-bar"><span class="fib-label">50.0%</span><div class="fib-line" style="background:#378add;"><div class="fib-marker" style="left:50%;"></div></div><span class="fib-price">₹1,700</span></div>
+        <div class="fib-bar"><span class="fib-label">61.8% ★</span><div class="fib-line" style="background:#185fa5;"><div class="fib-marker" style="left:61.8%;"></div></div><span class="fib-price">₹1,732</span></div>
+        <div class="fib-bar"><span class="fib-label">100% (top)</span><div class="fib-line" style="background:#0c447c;"><div class="fib-marker" style="left:100%;"></div></div><span class="fib-price">₹1,851</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;font-family:'Courier New',monospace;">★ 61.8% golden ratio level (₹1,732) = strongest bounce zone. Current price (₹1,778) is above it — bullish recovery signal.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trade Plan -->
+  <div class="section-title">Trade Plan Summary</div>
+  <div class="trade-plan">
+    <h3>Quantitative Trade Setup — Risk / Reward Framework</h3>
+    <div class="tp-row"><div class="tp-dot" style="background:#378add;"></div><span class="tp-label">Entry Zone</span><span class="tp-val">₹1,720 – ₹1,760</span><span class="tp-note">On pullback to 50-DMA or 61.8% Fib</span></div>
+    <div class="tp-row"><div class="tp-dot" style="background:#1d9e75;"></div><span class="tp-label">Target 1</span><span class="tp-val">₹1,851 (+5.2%)</span><span class="tp-note">52W High breakout test</span></div>
+    <div class="tp-row"><div class="tp-dot" style="background:#1d9e75;"></div><span class="tp-label">Target 2</span><span class="tp-val">₹1,960 (+11.4%)</span><span class="tp-note">Analyst consensus avg. target</span></div>
+    <div class="tp-row"><div class="tp-dot" style="background:#1d9e75;"></div><span class="tp-label">Target 3 (stretch)</span><span class="tp-val">₹2,100 (+19.3%)</span><span class="tp-note">Breakout extension; 12-month horizon</span></div>
+    <div class="tp-row"><div class="tp-dot" style="background:#d85a30;"></div><span class="tp-label">Stop-Loss</span><span class="tp-val">₹1,660 (−3.7%)</span><span class="tp-note">Below 200-DMA + support base</span></div>
+    <div class="tp-row"><div class="tp-dot" style="background:#993c1d;"></div><span class="tp-label">Hard Stop</span><span class="tp-val">₹1,610 (−6.4%)</span><span class="tp-note">Invalidates entire thesis</span></div>
+    <div style="margin-top:14px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'Courier New',monospace;">RISK-TO-REWARD RATIO</div>
+      <div class="rr-box">
+        <div class="rr-risk">Risk: ~3.7%</div>
+        <div class="rr-reward">Reward T1: 5.2% &nbsp;|&nbsp; T2: 11.4% &nbsp;|&nbsp; T3: 19.3%</div>
+      </div>
+      <div class="rr-note">R:R = 1:1.4 (T1) → 1:3.1 (T2) → 1:5.2 (T3) — Favorable setup for position sizing</div>
+    </div>
+  </div>
+
+  <!-- Signal Scorecard -->
+  <div class="section-title">Signal Scorecard</div>
+  <div class="grid4">
+    <div class="metric-card"><div class="mlabel">Trend</div><div class="mvalue">Neutral+</div><div class="msub neut">Multi-TF mixed</div></div>
+    <div class="metric-card"><div class="mlabel">RSI</div><div class="mvalue bull">~52</div><div class="msub bull">Room to run</div></div>
+    <div class="metric-card"><div class="mlabel">MACD</div><div class="mvalue bull">Buy</div><div class="msub bull">Pivot confirmed</div></div>
+    <div class="metric-card"><div class="mlabel">MA Stack</div><div class="mvalue bull">Bullish</div><div class="msub bull">Above all MAs</div></div>
+    <div class="metric-card"><div class="mlabel">Bollinger</div><div class="mvalue neut">Mid-band</div><div class="msub neut">Consolidating</div></div>
+    <div class="metric-card"><div class="mlabel">Volume</div><div class="mvalue bull">Positive</div><div class="msub bull">Sellers fading</div></div>
+    <div class="metric-card"><div class="mlabel">Fibonacci</div><div class="mvalue bull">Above 61.8%</div><div class="msub bull">Recovery intact</div></div>
+    <div class="metric-card"><div class="mlabel">Pattern</div><div class="mvalue neut">Base forming</div><div class="msub neut">Breakout pending</div></div>
+  </div>
+
+  <div class="footnote">
+    ⚠ This report is for informational purposes only and does not constitute financial advice. Trading in equity markets involves substantial risk of loss. All price levels are approximate based on data as of 30 Mar 2026. Always conduct your own due diligence before making investment decisions. Next earnings: 21 May 2026 — potential catalyst event. Generated by Citadel-style quantitative technical framework.
+  </div>
+
+</div>
+</body>
+</html>

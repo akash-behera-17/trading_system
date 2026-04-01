@@ -80,3 +80,35 @@
 **Status**: ✅ Complete
 **Objective**: Update the existing Flask API to serve all necessary fundamental metrics, pros/cons data, and ML signals to the new frontend dashboard.
 **Requirements**: REQ-UI-04
+
+---
+
+# Milestone: v2.1 (Opus 4.6 Confluence Edition)
+
+## Must-Haves
+- [x] Multi-factor entry rules (MAs, RSI, MACD, Bollinger Bands)
+- [x] Contextual 52-week distance logic
+- [x] Temporal 10-day lookback for LSTM anomaly detection
+- [x] Upgrade ML evaluation scripts and API routes to support the multi-dimensional sequence
+
+## Phases
+
+### Phase 11: System Modernization & Pipeline Sync
+**Status**: ✅ Complete
+**Objective**: Reconstruct the entire inference chain (hybrid evaluation, CLI inference, Flask API) to synchronize with the v2.1 ML Autoencoder (which now accepts 10-day 13-feature sequences instead of 1-day 7-feature vectors).
+**Tasks**:
+- [x] Engineer 13 contextual features matching Citadel-style frameworks
+- [x] Train 10-day LSTM autoencoder on strict non-crashing valid setups
+- [x] Migrate `hybrid_evaluation.py` to sliding windows
+- [x] Migrate `predict.py` to 10-day tensors
+- [x] Migrate `src/app.py` Flask endpoints to support inference using `seq_len=10`
+
+### Phase 12: Premium UI Overhaul — Citadel-Grade Dashboard
+**Status**: 🚧 In Progress
+**Objective**: Transform the frontend with a rich scrollable homepage (hero, Nifty/Sensex TradingView charts, top gainers/losers, search tool) and a Sun Pharma–style Citadel-grade technical analysis dashboard for every stock search result.
+**Depends on**: Phase 11
+**Tasks**:
+- [ ] Backend: Market movers & technical analysis API endpoints
+- [ ] Frontend: Scrollable homepage with 4 sections
+- [ ] Frontend: Sun Pharma–style Dashboard with TradingView charts
+- [ ] Expand stock list to Nifty 50

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const SearchBar = () => {
     const [query, setQuery] = useState('');
@@ -9,6 +10,7 @@ const SearchBar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
     const navigate = useNavigate();
+    const { token } = useAuth();
 
     // Close dropdown if clicked outside
     useEffect(() => {
@@ -46,7 +48,12 @@ const SearchBar = () => {
     const handleSelect = (ticker) => {
         setIsOpen(false);
         setQuery('');
-        navigate(`/dashboard?ticker=${ticker}`);
+        if (!token) {
+            alert("Please login first to view stock analysis.");
+            navigate('/login', { state: { from: `/dashboard?ticker=${ticker}` } });
+        } else {
+            navigate(`/dashboard?ticker=${ticker}`);
+        }
     };
 
     return (

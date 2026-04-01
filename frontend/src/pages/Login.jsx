@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShieldCheck, Mail, Lock, User, Activity } from 'lucide-react';
 
@@ -13,6 +13,7 @@ const Login = () => {
 
     const { login, register } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -23,7 +24,8 @@ const Login = () => {
             if (isLogin) {
                 const res = await login(email, password);
                 if (res.success) {
-                    navigate('/dashboard'); // Go to generic dashboard or let ProtectedRoute pick up next time
+                    const from = location.state?.from || '/';
+                    navigate(from);
                 } else {
                     setError(res.error);
                 }
@@ -33,7 +35,8 @@ const Login = () => {
                     // Auto login after register
                     const loginRes = await login(email, password);
                     if (loginRes.success) {
-                        navigate('/dashboard');
+                        const from = location.state?.from || '/';
+                        navigate(from);
                     } else {
                         setError("Registered successfully, but auto-login failed. Please login.");
                         setIsLogin(true);

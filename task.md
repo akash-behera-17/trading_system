@@ -1,0 +1,21 @@
+# Implementation Tasks for Advanced Neuro-Symbolic Model
+
+- [x] Update `src/feature_engineering.py`
+  - [x] Add 20-Day SMA
+  - [x] Add Bollinger Bands (Upper, Middle, Lower)
+  - [x] Add 52-Week High and Low (rolling 252 days)
+  - [x] Add distance to 52-Week High and Low (percentage)
+- [x] Update `src/rule_engine.py`
+  - [x] Integrate multi-factor confluence logic
+  - [x] Add RSI and MACD filters to the Bull/Bear rules
+  - [x] Add Bollinger Band constraints
+  - [x] Add basic Stop Loss / Risk Reward validation
+- [x] Update `src/autoencoder.py`
+  - [x] Refactor data preparation to create rolling windows (`seq_len=10`)
+  - [x] Incorporate new features from `feature_engineering.py`
+  - [x] Improve 'Success' definition to include a crash-prevention threshold (Stop Loss)
+  - [x] Retrain and test shape matching
+- [x] Verification
+  - [x] Run `feature_engineering.py`
+  - [x] Run `rule_engine.py`
+  - [x] Run `autoencoder.py`

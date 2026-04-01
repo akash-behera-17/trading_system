@@ -57,9 +57,15 @@ class LSTMAutoencoder(nn.Module):
         decoded_out, _ = self.decoder(hidden_n_repeated)
         return decoded_out
 
-# Hardcoded Threshold from Phase 4 evaluation: 4.6290
-THRESHOLD = 4.6290 
-FEATURES = ['DMA_50', 'DMA_100', 'DMA_200', 'RSI_14', 'MACD', 'MACD_signal', 'Volume_Change_Pct']
+# Hardcoded Threshold from Phase 4 evaluation: 0.2928 (70th percentile)
+THRESHOLD = 0.2928
+FEATURES = [
+    'DMA_20', 'DMA_50', 'DMA_100', 'DMA_200', 
+    'RSI_14', 'MACD', 'MACD_signal', 'Volume_Change_Pct',
+    'Bollinger_Upper', 'Bollinger_Middle', 'Bollinger_Lower',
+    'Distance_to_52W_High', 'Distance_to_52W_Low'
+]
+SEQ_LEN = 10
 
 # Attempt to load models at startup to save time on each request.
 MODEL_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models")
@@ -67,7 +73,7 @@ try:
     with open(os.path.join(MODEL_DIR, "scaler.pkl"), "rb") as f:
         scaler = pickle.load(f)
         
-    autoencoder_model = LSTMAutoencoder(seq_len=1, n_features=len(FEATURES), embedding_dim=4)
+    autoencoder_model = LSTMAutoencoder(seq_len=SEQ_LEN, n_features=len(FEATURES), embedding_dim=16)
     model_path = os.path.join(MODEL_DIR, "lstm_autoencoder.pt")
     autoencoder_model.load_state_dict(torch.load(model_path, weights_only=True))
     autoencoder_model.eval()
@@ -103,16 +109,37 @@ def fetch_recent_data(ticker, days=500):
 def engineer_features(df):
     """Calculates indicators on the live dataframe."""
     df = df.copy()
+    df['DMA_20'] = df['Close'].rolling(window=20).mean()
     df['DMA_50'] = df['Close'].rolling(window=50).mean()
     df['DMA_100'] = df['Close'].rolling(window=100).mean()
     df['DMA_200'] = df['Close'].rolling(window=200).mean()
+    
     df['RSI_14'] = ta.momentum.RSIIndicator(close=df['Close'], window=14).rsi()
+    
     macd_indicator = ta.trend.MACD(close=df['Close'], window_slow=26, window_fast=12, window_sign=9)
     df['MACD'] = macd_indicator.macd()
     df['MACD_signal'] = macd_indicator.macd_signal()
+    
     df['Volume_Change_Pct'] = df['Volume'].pct_change() * 100
     
-    return df.dropna().iloc[-1:] # Return only the latest day
+    bollinger = ta.volatility.BollingerBands(close=df['Close'], window=20, window_dev=2)
+    df['Bollinger_Upper'] = bollinger.bollinger_hband()
+    df['Bollinger_Middle'] = bollinger.bollinger_mavg()
+    df['Bollinger_Lower'] = bollinger.bollinger_lband()
+
+    df['52W_High'] = df['Close'].rolling(window=252).max()
+    df['52W_Low'] = df['Close'].rolling(window=252).min()
+    
+    df['Distance_to_52W_High'] = (df['Close'] - df['52W_High']) / df['52W_High']
+    df['Distance_to_52W_Low'] = (df['Close'] - df['52W_Low']) / df['52W_Low']
+    
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    df = df.dropna()
+    
+    if len(df) < SEQ_LEN:
+        raise ValueError(f"Not enough valid data rows after dropping NaNs to form a {SEQ_LEN}-day sequence.")
+        
+    return df.iloc[-SEQ_LEN:]
 
 # --- 3. API Endpoints ---
 
@@ -131,30 +158,32 @@ def predict():
     try:
         # 1. Fetch & Engineer
         df_raw = fetch_recent_data(ticker)
-        latest_day = engineer_features(df_raw)
+        latest_10_days = engineer_features(df_raw)
+        latest_day = latest_10_days.iloc[-1:]
         
         current_close = float(latest_day['Close'].values[0])
         date_str = latest_day.index[0].strftime('%Y-%m-%d')
         
-        pct_diff = ((latest_day['Close'] - latest_day['DMA_200']) * 100) / latest_day['DMA_200']
-        pct_diff = float(pct_diff.values[0])
-        
-        # 2. Rule Engine Verification
+        # 2. Rule Engine Verification (Opus 4.6 Confluence Logic)
         bull_condition = (
-            (latest_day['Close'] > latest_day['DMA_50']) &
-            (latest_day['DMA_50'] > latest_day['DMA_100']) &
-            (latest_day['DMA_100'] > latest_day['DMA_200']) &
-            (pct_diff >= 0.01) & 
-            (pct_diff <= 15.0)
-        ).values[0]
+            (latest_day['Close'] > latest_day['DMA_50']).values[0] and
+            (latest_day['DMA_50'] > latest_day['DMA_200']).values[0] and
+            (latest_day['Close'] > latest_day['DMA_20']).values[0] and
+            (latest_day['RSI_14'] > 40).values[0] and (latest_day['RSI_14'] < 70).values[0] and
+            (latest_day['MACD'] > latest_day['MACD_signal']).values[0] and
+            (latest_day['Close'] <= latest_day['Bollinger_Upper']).values[0] and
+            (latest_day['Close'] <= latest_day['DMA_200'] * 1.10).values[0]
+        )
         
         bear_condition = (
-            (latest_day['Close'] < latest_day['DMA_50']) &
-            (latest_day['DMA_50'] < latest_day['DMA_100']) &
-            (latest_day['DMA_100'] < latest_day['DMA_200']) &
-            (pct_diff >= -15.0) & 
-            (pct_diff <= -0.01)
-        ).values[0]
+            (latest_day['Close'] < latest_day['DMA_50']).values[0] and
+            (latest_day['DMA_50'] < latest_day['DMA_200']).values[0] and
+            (latest_day['Close'] < latest_day['DMA_20']).values[0] and
+            (latest_day['RSI_14'] < 60).values[0] and (latest_day['RSI_14'] > 30).values[0] and
+            (latest_day['MACD'] < latest_day['MACD_signal']).values[0] and
+            (latest_day['Close'] >= latest_day['Bollinger_Lower']).values[0] and
+            (latest_day['Close'] >= latest_day['DMA_200'] * 0.90).values[0]
+        )
         
         rule_signal = 0
         rule_desc = "WAIT (Unconfirmed Zone)"
@@ -180,10 +209,10 @@ def predict():
         
         # 3. ML Filter (Only if it's a Potential Buy and models are loaded)
         if rule_signal == 1 and MODEL_LOADED:
-            # Extract features and scale
-            X_eval = latest_day[FEATURES].values
+            # Extract features and scale (all 10 days)
+            X_eval = latest_10_days[FEATURES].values
             X_eval_scaled = scaler.transform(X_eval)
-            X_tensor = torch.tensor(X_eval_scaled, dtype=torch.float32).unsqueeze(1)
+            X_tensor = torch.tensor(X_eval_scaled, dtype=torch.float32).unsqueeze(0)
             
             criterion = nn.MSELoss(reduction='none')
             
