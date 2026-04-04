@@ -13,9 +13,37 @@ import torch
 import torch.nn as nn
 from datetime import datetime, timedelta
 import os
+import requests
+from functools import wraps
+
+SUPABASE_URL = "https://uiclofxluhnlojapivrk.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpY2xvZnhsdWhubG9qYXBpdnJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTQ3ODEsImV4cCI6MjA5MDc3MDc4MX0.z4qgWAFKGycrbheH77txI9oDjxxTTacs_0gWneDQdjA"
 
 app = Flask(__name__)
 CORS(app)
+
+@app.before_request
+def check_auth():
+    if request.method == "OPTIONS":
+        return
+    
+    # Protect specific routes but leave homepage data public
+    protected_prefixes = ["/predict", "/api/stocks/dashboard", "/api/stocks/technical-analysis"]
+    is_protected = any(request.path.startswith(prefix) for prefix in protected_prefixes)
+    
+    if is_protected:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Missing or invalid Authorization header"}), 401
+        
+        token = auth_header.split(" ")[1]
+        try:
+            res = requests.get(f"{SUPABASE_URL}/auth/v1/user", 
+                headers={"Authorization": f"Bearer {token}", "apikey": SUPABASE_ANON_KEY})
+            if res.status_code != 200:
+                return jsonify({"error": "Unauthorized"}), 401
+        except Exception as e:
+            return jsonify({"error": "Auth validation error"}), 500
 
 # --- Database & Auth Configuration ---
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-prod'
@@ -26,16 +54,11 @@ from src.extensions import db, bcrypt
 db.init_app(app)
 bcrypt.init_app(app)
 
-# Import models so SQLAlchemy knows about them
-from src.models.user import User
-
 with app.app_context():
     db.create_all()
 
 # Register Blueprints
-from src.routes.auth_routes import auth_bp
 from src.routes.stock_routes import stock_bp
-app.register_blueprint(auth_bp)
 app.register_blueprint(stock_bp)
 
 # --- 1. Model Definitions & Setup ---
@@ -147,7 +170,7 @@ def engineer_features(df):
 def health_check():
     return jsonify({"status": "healthy", "model_loaded": MODEL_LOADED})
 
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['POST', 'OPTIONS'])
 def predict():
     data = request.get_json()
     if not data or 'ticker' not in data:
@@ -164,7 +187,7 @@ def predict():
         current_close = float(latest_day['Close'].values[0])
         date_str = latest_day.index[0].strftime('%Y-%m-%d')
         
-        # 2. Rule Engine Verification (Opus 4.6 Confluence Logic)
+        # 2. Rule Engine Verification (Rule Engine Confluence Logic)
         bull_condition = (
             (latest_day['Close'] > latest_day['DMA_50']).values[0] and
             (latest_day['DMA_50'] > latest_day['DMA_200']).values[0] and

@@ -1,0 +1,7 @@
+/local_archive/
+instance/
+__pycache__/
+*.pyc
+.env
+.gsd/
+gsd-template/

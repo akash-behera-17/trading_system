@@ -49,7 +49,7 @@ const SearchBar = () => {
         setIsOpen(false);
         setQuery('');
         if (!token) {
-            alert("Please login first to view stock analysis.");
+            // Not logged in → send to login, remember intended destination
             navigate('/login', { state: { from: `/dashboard?ticker=${ticker}` } });
         } else {
             navigate(`/dashboard?ticker=${ticker}`);
@@ -64,7 +64,7 @@ const SearchBar = () => {
                 </div>
                 <input
                     type="text"
-                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-lg bg-white"
+                    className="search-bar-input w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-lg bg-white"
                     placeholder="Search for companies (e.g., RELIANCE, TCS)"
                     value={query}
                     onChange={(e) => {

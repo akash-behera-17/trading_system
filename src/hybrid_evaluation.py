@@ -21,7 +21,7 @@ def evaluate_hybrid_system(signals_path: str = "data/rule_signals.csv",
                            scaler_path: str = "models/scaler.pkl",
                            output_path: str = "data/hybrid_results.csv") -> None:
     """
-    Merges the rule-based Engine (Opus 4.6 Confluence Edition) with the Unsupervised LSTM-Autoencoder.
+    Merges the rule-based Engine (Rule Engine Confluence Edition) with the Unsupervised LSTM-Autoencoder.
     """
     if not os.path.exists(signals_path):
         print(f"Error: Signals data not found at {signals_path}")

@@ -16,7 +16,7 @@ def apply_strategy(input_path: str = "data/processed_stock_data.csv", output_pat
     print("Loading processed data for rule evaluation...")
     df = pd.read_csv(input_path, index_col=0, parse_dates=True)
     
-    # Define conditions based on confluence (Opus 4.6 inspired)
+    # Define conditions based on confluence (Rule Engine Confluence)
     
     # Bull condition:
     # 1. Trend: Long term MAs aligned + price above 20-day SMA

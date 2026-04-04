@@ -27,17 +27,17 @@ body {
 }
 
 /* Override search bar styles for dark homepage */
-input[type="text"] {
+.search-bar-input {
   background: rgba(255,255,255,0.06) !important;
   border: 1px solid rgba(255,255,255,0.12) !important;
   color: #fff !important;
 }
 
-input[type="text"]::placeholder {
+.search-bar-input::placeholder {
   color: rgba(255,255,255,0.3) !important;
 }
 
-input[type="text"]:focus {
+.search-bar-input:focus {
   border-color: #6366f1 !important;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
 }

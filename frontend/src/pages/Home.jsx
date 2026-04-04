@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import SearchBar from '../components/SearchBar';
 import IndexChart from '../components/IndexChart';
+import NeuralNetworkScene from '../components/NeuralNetworkScene';
 import { TrendingUp, TrendingDown, ShieldAlert, BarChart3, ArrowDown, Zap, Brain, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -88,63 +89,82 @@ const Home = () => {
                 alignItems: 'center', justifyContent: 'center', textAlign: 'center',
                 padding: '120px 24px 80px',
                 background: 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.15) 0%, transparent 60%)',
-                position: 'relative'
+                position: 'relative', overflow: 'hidden'
             }}>
-                {/* Animated grid background */}
+                {/* ── 3D Neural Network Animation (background layer) ── */}
+                <Suspense fallback={null}>
+                    <NeuralNetworkScene />
+                </Suspense>
+
+                {/* Gradient overlay so text stays readable */}
                 <div style={{
-                    position: 'absolute', inset: 0, opacity: 0.04,
-                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
-                    backgroundSize: '60px 60px'
+                    position: 'absolute', inset: 0, zIndex: 1,
+                    background: 'radial-gradient(circle at 50% 50%, transparent 30%, rgba(10,10,15,0.7) 70%)',
+                    pointerEvents: 'none'
                 }}></div>
 
+                {/* Animated grid background */}
                 <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)',
-                    borderRadius: '999px', padding: '6px 16px', marginBottom: '32px',
-                    fontSize: '13px', color: '#a5b4fc', fontWeight: 600
-                }}>
-                    <Zap style={{ width: 14, height: 14 }} /> Neuro-Symbolic AI Engine v2.1
+                    position: 'absolute', inset: 0, opacity: 0.04, zIndex: 1,
+                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+                    backgroundSize: '60px 60px', pointerEvents: 'none'
+                }}></div>
+
+                {/* Hero content (above 3D scene) */}
+                <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '8px',
+                        background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)',
+                        borderRadius: '999px', padding: '6px 16px', marginBottom: '32px',
+                        fontSize: '13px', color: '#a5b4fc', fontWeight: 600,
+                        backdropFilter: 'blur(8px)'
+                    }}>
+                        <Zap style={{ width: 14, height: 14 }} /> Neuro-Symbolic AI Engine v2.1
+                    </div>
+
+                    <h1 style={{
+                        fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 900,
+                        lineHeight: 1.1, letterSpacing: '-0.04em', maxWidth: '800px',
+                        margin: '0 0 24px',
+                        textShadow: '0 0 60px rgba(99,102,241,0.3)'
+                    }}>
+                        Neuro-Symbolic{' '}
+                        <span style={{
+                            background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa)',
+                            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+                        }}>
+                            Trading System
+                        </span>
+                    </h1>
+
+                    <p style={{
+                        fontSize: '18px', color: 'rgba(255,255,255,0.55)', maxWidth: '560px',
+                        lineHeight: 1.7, margin: '0 0 40px',
+                        textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+                    }}>
+                        Combining expert rule-based strategy with LSTM Autoencoder anomaly detection
+                        to filter bull traps and validate trade setups on Indian markets.
+                    </p>
+
+                    <button onClick={scrollToSearch} style={{
+                        background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                        color: '#fff', border: 'none', padding: '16px 40px',
+                        borderRadius: '12px', fontSize: '16px', fontWeight: 700,
+                        cursor: 'pointer', letterSpacing: '0.02em',
+                        boxShadow: '0 0 40px rgba(99,102,241,0.4)',
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        position: 'relative', zIndex: 3
+                    }}
+                        onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 0 60px rgba(99,102,241,0.5)'; }}
+                        onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 0 40px rgba(99,102,241,0.4)'; }}
+                    >
+                        Get Started <ChevronRight style={{ width: 18, height: 18 }} />
+                    </button>
                 </div>
 
-                <h1 style={{
-                    fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 900,
-                    lineHeight: 1.1, letterSpacing: '-0.04em', maxWidth: '800px',
-                    margin: '0 0 24px', position: 'relative'
-                }}>
-                    Neuro-Symbolic{' '}
-                    <span style={{
-                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa)',
-                        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-                    }}>
-                        Trading System
-                    </span>
-                </h1>
-
-                <p style={{
-                    fontSize: '18px', color: 'rgba(255,255,255,0.5)', maxWidth: '560px',
-                    lineHeight: 1.7, margin: '0 0 40px'
-                }}>
-                    Combining expert rule-based strategy with LSTM Autoencoder anomaly detection
-                    to filter bull traps and validate trade setups on Indian markets.
-                </p>
-
-                <button onClick={scrollToSearch} style={{
-                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                    color: '#fff', border: 'none', padding: '16px 40px',
-                    borderRadius: '12px', fontSize: '16px', fontWeight: 700,
-                    cursor: 'pointer', letterSpacing: '0.02em',
-                    boxShadow: '0 0 40px rgba(99,102,241,0.3)',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    display: 'flex', alignItems: 'center', gap: '10px'
-                }}
-                    onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 0 60px rgba(99,102,241,0.5)'; }}
-                    onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 0 40px rgba(99,102,241,0.3)'; }}
-                >
-                    Get Started <ChevronRight style={{ width: 18, height: 18 }} />
-                </button>
-
                 <div style={{
-                    position: 'absolute', bottom: '40px',
+                    position: 'absolute', bottom: '40px', zIndex: 2,
                     animation: 'bounce 2s infinite'
                 }}>
                     <ArrowDown style={{ width: 24, height: 24, color: 'rgba(255,255,255,0.2)' }} />

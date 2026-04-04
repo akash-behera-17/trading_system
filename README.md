@@ -254,7 +254,7 @@ An unsupervised anomaly detector trained exclusively on historically proven brea
 |---|---|---|
 | **v1.0** | Core ML System | Phases 1–5: Data pipeline, rule engine, LSTM-Autoencoder, backtesting, CLI inference |
 | **v2.0** | Professional Web UI | Phases 6–10: Flask API, React dashboard, auth system, stock search, interactive charts |
-| **v2.1** | Opus 4.6 Confluence | Phase 11: Expanded to 13 features, 10-day sequences, multi-factor confluence rules, system-wide pipeline sync |
+| **v2.1** | Rule Engine Confluence | Phase 11: Expanded to 13 features, 10-day sequences, multi-factor confluence rules, system-wide pipeline sync |
 
 ---
 

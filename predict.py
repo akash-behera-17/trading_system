@@ -111,7 +111,7 @@ def predict_signal(ticker):
     # Calculate % Difference from 200 DMA
     pct_diff = ((current_close - float(latest_day['DMA_200'].values[0])) * 100) / float(latest_day['DMA_200'].values[0])
     
-    # 3. Rule Engine (Opus 4.6 Confluence Strategy)
+    # 3. Rule Engine (Rule Engine Confluence Strategy)
     bull_condition = (
         (latest_day['Close'] > latest_day['DMA_50']).values[0] and
         (latest_day['DMA_50'] > latest_day['DMA_200']).values[0] and
