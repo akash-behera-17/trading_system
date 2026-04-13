@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createChart, LineSeries, AreaSeries, HistogramSeries } from 'lightweight-charts';
-import axios from 'axios';
+import { api } from '../lib/api';
 
 const PERIODS = [
     { label: '1M', value: '1mo' },
@@ -33,9 +33,10 @@ const StockChart = ({ ticker }) => {
         setLoading(true);
         setError('');
         try {
-            const res = await axios.get(`http://localhost:5000/api/stocks/chart-data?ticker=${ticker}&period=${period}`);
+            const res = await api.get('/api/stocks/chart-data', { params: { ticker, period } });
             setChartData(res.data);
-        } catch (err) {
+        } catch (fetchError) {
+            console.error('Failed to load stock chart data:', fetchError);
             setError('Failed to load chart data');
         } finally {
             setLoading(false);

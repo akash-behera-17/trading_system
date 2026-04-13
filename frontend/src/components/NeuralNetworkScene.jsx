@@ -3,6 +3,13 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, MeshDistortMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 
+const seededValue = (seed) => {
+    const raw = Math.sin(seed) * 10000;
+    return raw - Math.floor(raw);
+};
+
+const seededRange = (seed, magnitude) => (seededValue(seed) - 0.5) * magnitude;
+
 // ─── Glowing node (neuron) ───────────────────────────────────────
 function Neuron({ position, color, speed, distort, size }) {
     const ref = useRef();
@@ -35,10 +42,12 @@ function Synapse({ start, end, color, pulseSpeed }) {
     const dotRef = useRef();
 
     const curve = useMemo(() => {
+        const startSeed = start.reduce((sum, value, index) => sum + ((value + 3) * 37 * (index + 1)), 0);
+        const endSeed = end.reduce((sum, value, index) => sum + ((value + 3) * 53 * (index + 1)), 0);
         const mid = [
-            (start[0] + end[0]) / 2 + (Math.random() - 0.5) * 0.5,
-            (start[1] + end[1]) / 2 + (Math.random() - 0.5) * 0.3,
-            (start[2] + end[2]) / 2 + (Math.random() - 0.5) * 0.4,
+            (start[0] + end[0]) / 2 + seededRange(startSeed + endSeed + 1, 0.5),
+            (start[1] + end[1]) / 2 + seededRange(startSeed + endSeed + 2, 0.3),
+            (start[2] + end[2]) / 2 + seededRange(startSeed + endSeed + 3, 0.4),
         ];
         return new THREE.QuadraticBezierCurve3(
             new THREE.Vector3(...start),
@@ -121,9 +130,10 @@ function ParticleField({ count = 200 }) {
     const positions = useMemo(() => {
         const arr = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
-            arr[i * 3] = (Math.random() - 0.5) * 8;
-            arr[i * 3 + 1] = (Math.random() - 0.5) * 8;
-            arr[i * 3 + 2] = (Math.random() - 0.5) * 8;
+            const seed = (i + 1) * 17.17;
+            arr[i * 3] = seededRange(seed, 8);
+            arr[i * 3 + 1] = seededRange(seed + 1, 8);
+            arr[i * 3 + 2] = seededRange(seed + 2, 8);
         }
         return arr;
     }, [count]);

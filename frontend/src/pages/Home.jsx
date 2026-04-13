@@ -4,8 +4,8 @@ import IndexChart from '../components/IndexChart';
 import NeuralNetworkScene from '../components/NeuralNetworkScene';
 import { TrendingUp, TrendingDown, ShieldAlert, BarChart3, ArrowDown, Zap, Brain, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import { useAuth } from '../context/useAuth';
+import { api } from '../lib/api';
 
 const Home = () => {
     const { token, logout } = useAuth();
@@ -13,15 +13,19 @@ const Home = () => {
     const searchRef = useRef(null);
     const [movers, setMovers] = useState(null);
     const [moversLoading, setMoversLoading] = useState(true);
+    const [moversError, setMoversError] = useState('');
 
     useEffect(() => {
         const fetchMovers = async () => {
             try {
                 setMoversLoading(true);
-                const res = await axios.get('http://localhost:5000/api/stocks/market-movers');
+                setMoversError('');
+                const res = await api.get('/api/stocks/market-movers');
                 setMovers(res.data);
-            } catch (err) {
-                console.error('Failed to fetch market movers:', err);
+            } catch (fetchError) {
+                console.error('Failed to fetch market movers:', fetchError);
+                setMovers(null);
+                setMoversError('Market movers are unavailable right now.');
             } finally {
                 setMoversLoading(false);
             }
@@ -308,7 +312,15 @@ const Home = () => {
                             </div>
                         </div>
                     ) : (
-                        <p style={{ color: 'rgba(255,255,255,0.3)' }}>Market data unavailable</p>
+                        <div style={{
+                            borderRadius: '16px',
+                            border: '1px solid rgba(239,68,68,0.18)',
+                            background: 'rgba(239,68,68,0.05)',
+                            padding: '24px',
+                            color: 'rgba(255,255,255,0.65)'
+                        }}>
+                            {moversError || 'Market data unavailable.'}
+                        </div>
                     )}
                 </div>
             </section>

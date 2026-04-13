@@ -8,21 +8,26 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler
 
 class LSTMAutoencoder(nn.Module):
-    def __init__(self, seq_len, n_features, embedding_dim=16):
+    """
+    v2.0: Deeper architecture with 2-layer encoder, larger latent space,
+    and dropout for regularization.
+    """
+    def __init__(self, seq_len, n_features, embedding_dim=32, dropout=0.2):
         super(LSTMAutoencoder, self).__init__()
         self.seq_len = seq_len
         self.n_features = n_features
         self.embedding_dim = embedding_dim
 
-        # Encoder
+        # Encoder (2-layer for deeper temporal modeling)
         self.encoder = nn.LSTM(
             input_size=n_features,
             hidden_size=embedding_dim,
-            num_layers=1,
-            batch_first=True
+            num_layers=2,
+            batch_first=True,
+            dropout=dropout
         )
 
-        # Decoder
+        # Decoder (2-layer)
         self.decoder = nn.LSTM(
             input_size=embedding_dim,
             hidden_size=n_features,
@@ -32,132 +37,179 @@ class LSTMAutoencoder(nn.Module):
 
     def forward(self, x):
         encoded_out, (hidden_n, cell_n) = self.encoder(x)
-        hidden_n = hidden_n.squeeze(0).unsqueeze(1) # (batch, 1, hidden_size)
-        hidden_n_repeated = hidden_n.repeat(1, self.seq_len, 1) # (batch, seq_len, hidden_size)
+        # Take the last layer's hidden state
+        hidden_n = hidden_n[-1].unsqueeze(1)  # (batch, 1, hidden_size)
+        hidden_n_repeated = hidden_n.repeat(1, self.seq_len, 1)  # (batch, seq_len, hidden_size)
         decoded_out, _ = self.decoder(hidden_n_repeated)
         return decoded_out
 
+
 def create_sequences(data, seq_len):
-    """
-    Creates overlapping sequences of length seq_len from a 2D numpy array.
-    """
+    """Creates overlapping sequences of length seq_len from a 2D numpy array."""
     xs = []
     for i in range(len(data) - seq_len + 1):
         xs.append(data[i:(i + seq_len)])
-    return np.array(xs)
+    return np.array(xs) if xs else np.array([]).reshape(0, seq_len, data.shape[1])
+
+
+# Feature set used by the autoencoder (original 13 features for compatibility)
+AE_FEATURES = [
+    'DMA_20', 'DMA_50', 'DMA_100', 'DMA_200',
+    'RSI_14', 'MACD', 'MACD_signal', 'Volume_Change_Pct',
+    'Bollinger_Upper', 'Bollinger_Middle', 'Bollinger_Lower',
+    'Distance_to_52W_High', 'Distance_to_52W_Low'
+]
+
 
 def build_and_train_model(input_path: str = "data/rule_signals.csv", model_dir: str = "models/", seq_len: int = 10) -> None:
     """
-    Trains an LSTM-Autoencoder exclusively on historical 'Successful' Buy setups with a sliding window.
+    v2.0: Tuned hyperparameters:
+    - embedding_dim: 16 -> 32
+    - num_layers: 1 -> 2 (encoder)
+    - dropout: 0 -> 0.2
+    - learning_rate: 0.005 -> 0.001
+    - epochs: 150 -> 250
+    - batch_size: 32 -> 64
     """
     if not os.path.exists(input_path):
         print(f"Error: Rule signals data not found at {input_path}")
         return
 
-    print("Loading data to isolate successful setups...")
+    print("Loading data to isolate successful setups (v2.0 tuned)...")
     df = pd.read_csv(input_path, index_col=0, parse_dates=True)
-    
-    # Ensure there are no NaNs in important feature columns
-    # We might have NaNs due to rolling 252 for 52W High/Low
+
+    if 'Ticker' not in df.columns:
+        print("Error: 'Ticker' column not found.")
+        return
+
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df.dropna(inplace=True)
 
-    # --- Step 1: Filter for Success ---
-    # We want a 5% pop in 10 days, but NOT a 3% crash.
-    df['Max_Next_10_Days'] = df['Close'].rolling(window=10).max().shift(-10)
-    df['Min_Next_10_Days'] = df['Close'].rolling(window=10).min().shift(-10)
-    
-    # Identify completely valid setups (success)
-    success_condition = (df['Rule_Signal'] == 1) & (df['Max_Next_10_Days'] >= df['Close'] * 1.05) & (df['Min_Next_10_Days'] > df['Close'] * 0.97)
-    df['Is_Success'] = success_condition
-    
-    # Extract the indices where success occurred
-    success_indices = np.where(df['Is_Success'])[0]
-    
-    print(f"Total potential buys (signals=1): {len(df[df['Rule_Signal'] == 1])}")
-    print(f"Total STRICT SUCCESSFUL setups to train Autoencoder: {len(success_indices)}")
-    
-    features = [
-        'DMA_20', 'DMA_50', 'DMA_100', 'DMA_200', 
-        'RSI_14', 'MACD', 'MACD_signal', 'Volume_Change_Pct',
-        'Bollinger_Upper', 'Bollinger_Middle', 'Bollinger_Lower',
-        'Distance_to_52W_High', 'Distance_to_52W_Low'
-    ]
-    
-    # Drop lookahead columns 
-    df.drop(columns=['Max_Next_10_Days', 'Min_Next_10_Days', 'Is_Success'], inplace=True, errors='ignore')
-    
-    # --- Step 2: Data Prep & Sequence Generation ---
-    X_raw = df[features].values
-    
-    if len(X_raw) < seq_len:
-        print("Not enough data to train. Exiting.")
-        return
+    features = AE_FEATURES
 
-    # Scale data globally
+    # Fit scaler globally
+    print("Fitting global scaler across all tickers...")
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X_raw)
-    
-    # Create all sequences
-    # Sequence mapping: sequence at index i ends at index i + seq_len - 1.
-    X_sequences = create_sequences(X_scaled, seq_len)
-    
-    # Filter only the sequences that end on a 'Success' day.
-    # If success occurs at df index `idx`, the sequence must end at `idx`.
-    # Index in X_sequences corresponding to ending at `idx` is `idx - seq_len + 1`.
-    valid_seq_indices = [idx - seq_len + 1 for idx in success_indices if idx >= seq_len - 1]
-    
-    X_train = X_sequences[valid_seq_indices]
-    
-    if len(X_train) == 0:
-        print("Warning: No strict 10-day successful setups found! Relaxing constraint to train a baseline autoencoder on all Rule=1 signals.")
-        all_buys_indices = np.where(df['Rule_Signal'] == 1)[0]
-        valid_seq_indices = [idx - seq_len + 1 for idx in all_buys_indices if idx >= seq_len - 1]
-        X_train = X_sequences[valid_seq_indices]
-        print(f"Fallback training on {len(X_train)} setup instances.")
-        
-    if len(X_train) == 0:
+    scaler.fit(df[features].values)
+
+    # Create sequences PER TICKER
+    all_train_sequences = []
+    total_buys = 0
+    total_successes = 0
+
+    for ticker, group in df.groupby('Ticker'):
+        group = group.sort_index().copy()
+
+        group['Max_Next_10_Days'] = group['Close'].rolling(window=10).max().shift(-10)
+        group['Min_Next_10_Days'] = group['Close'].rolling(window=10).min().shift(-10)
+
+        success_condition = (
+            (group['Rule_Signal'] == 1) &
+            (group['Max_Next_10_Days'] >= group['Close'] * 1.05) &
+            (group['Min_Next_10_Days'] > group['Close'] * 0.97)
+        )
+        group['Is_Success'] = success_condition
+
+        buy_count = (group['Rule_Signal'] == 1).sum()
+        success_indices = np.where(group['Is_Success'].values)[0]
+        total_buys += buy_count
+        total_successes += len(success_indices)
+
+        if len(success_indices) == 0:
+            continue
+
+        X_scaled = scaler.transform(group[features].values)
+        X_sequences = create_sequences(X_scaled, seq_len)
+
+        if len(X_sequences) == 0:
+            continue
+
+        valid_seq_indices = [idx - seq_len + 1 for idx in success_indices if idx >= seq_len - 1]
+        valid_seq_indices = [i for i in valid_seq_indices if 0 <= i < len(X_sequences)]
+
+        if valid_seq_indices:
+            all_train_sequences.append(X_sequences[valid_seq_indices])
+
+    print(f"\nTotal Rule-Based Buys across all tickers: {total_buys}")
+    print(f"Total STRICT SUCCESSFUL setups for training: {total_successes}")
+
+    if not all_train_sequences:
+        print("ERROR: No successful training sequences found. Using fallback.")
+        for ticker, group in df.groupby('Ticker'):
+            group = group.sort_index()
+            buy_indices = np.where(group['Rule_Signal'].values == 1)[0]
+            if len(buy_indices) == 0:
+                continue
+            X_scaled = scaler.transform(group[features].values)
+            X_sequences = create_sequences(X_scaled, seq_len)
+            if len(X_sequences) == 0:
+                continue
+            valid = [idx - seq_len + 1 for idx in buy_indices if idx >= seq_len - 1]
+            valid = [i for i in valid if 0 <= i < len(X_sequences)]
+            if valid:
+                all_train_sequences.append(X_sequences[valid])
+
+    if not all_train_sequences:
         print("Still no data. Cannot train. Exiting.")
         return
 
-    print(f"Training shapes: {X_train.shape} -> (batch, {seq_len}, {len(features)})")
+    X_train = np.concatenate(all_train_sequences, axis=0)
+    print(f"\nTraining data shape: {X_train.shape} -> (samples, {seq_len}, {len(features)})")
 
-    X_train_tensor = torch.tensor(X_train, dtype=torch.float32) 
-    
+    # --- TUNED HYPERPARAMETERS ---
+    EMBEDDING_DIM = 32
+    LEARNING_RATE = 0.001
+    EPOCHS = 250
+    BATCH_SIZE = min(64, len(X_train))
+    DROPOUT = 0.2
+
+    X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
     dataset = TensorDataset(X_train_tensor, X_train_tensor)
-    data_loader = DataLoader(dataset, batch_size=min(16, len(X_train_tensor)), shuffle=True)
-    
-    # --- Step 3: Train LSTM-Autoencoder ---
-    print("\nInitializing LSTM-Autoencoder...")
-    model = LSTMAutoencoder(seq_len=seq_len, n_features=len(features), embedding_dim=16)
+    data_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+    print(f"\nInitializing LSTM-Autoencoder v2.0...")
+    print(f"  embedding_dim={EMBEDDING_DIM}, num_layers=2, dropout={DROPOUT}")
+    print(f"  lr={LEARNING_RATE}, epochs={EPOCHS}, batch_size={BATCH_SIZE}")
+
+    model = LSTMAutoencoder(seq_len=seq_len, n_features=len(features),
+                            embedding_dim=EMBEDDING_DIM, dropout=DROPOUT)
     criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
-    
-    epochs = 150
-    print(f"Training on {len(X_train_tensor)} valid sequences for {epochs} epochs...")
+    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=20, factor=0.5)
+
     model.train()
-    for __ in range(epochs):
+    for epoch in range(EPOCHS):
+        epoch_loss = 0
         for inputs, targets in data_loader:
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
-            
+            epoch_loss += loss.item()
+
+        avg_loss = epoch_loss / len(data_loader)
+        scheduler.step(avg_loss)
+
+        if (epoch + 1) % 50 == 0:
+            print(f"  Epoch {epoch+1}/{EPOCHS} - Loss: {avg_loss:.4f}")
+
     print(f"Final training loss (MSE): {loss.item():.4f}")
-    
-    # --- Step 4: Save Artifacts ---
+
+    # Save
     os.makedirs(model_dir, exist_ok=True)
-    
-    scaler_path = os.path.join(model_dir, "scaler.pkl")
-    with open(scaler_path, "wb") as f:
+    with open(os.path.join(model_dir, "scaler.pkl"), "wb") as f:
         pickle.dump(scaler, f)
-        
-    model_path = os.path.join(model_dir, "lstm_autoencoder.pt")
-    torch.save(model.state_dict(), model_path)
-    
-    print(f"\nSaved scaling parameters to {scaler_path}")
-    print(f"Saved PyTorch LSTM-Autoencoder weights to {model_path}")
+    torch.save(model.state_dict(), os.path.join(model_dir, "lstm_autoencoder.pt"))
+
+    # Save hyperparameters for loading
+    hp = {'embedding_dim': EMBEDDING_DIM, 'dropout': DROPOUT, 'seq_len': seq_len,
+          'n_features': len(features), 'num_layers': 2}
+    with open(os.path.join(model_dir, "ae_hyperparams.pkl"), "wb") as f:
+        pickle.dump(hp, f)
+
+    print(f"\nSaved all model artifacts to {model_dir}")
+
 
 if __name__ == "__main__":
     build_and_train_model()

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createChart, AreaSeries, HistogramSeries } from 'lightweight-charts';
-import axios from 'axios';
+import { api } from '../lib/api';
 
 const PERIODS = [
     { label: '1M', value: '1mo' },
@@ -22,7 +22,7 @@ const IndexChart = ({ ticker, title, accentColor = '#6366f1' }) => {
     const fetchData = useCallback(async (period) => {
         setLoading(true);
         try {
-            const res = await axios.get(`http://localhost:5000/api/stocks/chart-data?ticker=${ticker}&period=${period}`);
+            const res = await api.get('/api/stocks/chart-data', { params: { ticker, period } });
             setChartData(res.data);
             const ohlcv = res.data.ohlcv;
             if (ohlcv?.length >= 2) {
@@ -33,8 +33,8 @@ const IndexChart = ({ ticker, title, accentColor = '#6366f1' }) => {
                 setLatestPrice(last);
                 setChange({ value: chg.toFixed(2), pct: chgPct, up: chg >= 0 });
             }
-        } catch (err) {
-            console.error(`Failed to load ${ticker}:`, err);
+        } catch (fetchError) {
+            console.error(`Failed to load ${ticker}:`, fetchError);
         } finally {
             setLoading(false);
         }

@@ -1,8 +1,7 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import axios from 'axios';
-
-const AuthContext = createContext(null);
+import { api } from '../lib/api';
+import { AuthContext } from './auth-context';
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -16,7 +15,7 @@ export const AuthProvider = ({ children }) => {
             setUser(session?.user || null);
             setLoading(false);
             if (session?.access_token) {
-                axios.defaults.headers.common['Authorization'] = `Bearer ${session.access_token}`;
+                api.defaults.headers.common.Authorization = `Bearer ${session.access_token}`;
             }
         });
 
@@ -27,9 +26,9 @@ export const AuthProvider = ({ children }) => {
                 setUser(session?.user || null);
                 setLoading(false);
                 if (session?.access_token) {
-                    axios.defaults.headers.common['Authorization'] = `Bearer ${session.access_token}`;
+                    api.defaults.headers.common.Authorization = `Bearer ${session.access_token}`;
                 } else {
-                    delete axios.defaults.headers.common['Authorization'];
+                    delete api.defaults.headers.common.Authorization;
                 }
             }
         );
@@ -84,5 +83,3 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
-
-export const useAuth = () => useContext(AuthContext);

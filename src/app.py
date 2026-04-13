@@ -15,9 +15,13 @@ from datetime import datetime, timedelta
 import os
 import requests
 from functools import wraps
+from dotenv import load_dotenv
 
-SUPABASE_URL = "https://uiclofxluhnlojapivrk.supabase.co"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpY2xvZnhsdWhubG9qYXBpdnJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTQ3ODEsImV4cCI6MjA5MDc3MDc4MX0.z4qgWAFKGycrbheH77txI9oDjxxTTacs_0gWneDQdjA"
+# Load environment variables from .env file if present
+load_dotenv()
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://your-fallback-url.supabase.co")
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "your-fallback-anon-key")
 
 app = Flask(__name__)
 CORS(app)
@@ -46,7 +50,7 @@ def check_auth():
             return jsonify({"error": "Auth validation error"}), 500
 
 # --- Database & Auth Configuration ---
-app.config['SECRET_KEY'] = 'dev-secret-key-change-in-prod'
+app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY", "dev-secret-key-change-in-prod")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///stock_ml.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 

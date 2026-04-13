@@ -12,3 +12,5 @@ PyJWT
 requests
 streamlit
 torch
+gunicorn
+python-dotenv

@@ -4,10 +4,10 @@ import os
 
 def apply_strategy(input_path: str = "data/processed_stock_data.csv", output_path: str = "data/rule_signals.csv") -> None:
     """
-    Applies the Mahesh Kaushik Rule-Based Strategy.
-    - Bull Zone (Potential Buy, 1): Close > 50 DMA > 100 DMA > 200 DMA AND Close <= 200 DMA * 1.10
-    - Bear Zone (Potential Sell, -1): Close < 50 DMA < 100 DMA < 200 DMA AND Close >= 200 DMA * 0.90
-    - Unconfirmed (Wait, 0): All other conditions
+    Applies the Mahesh Kaushik Rule-Based Confluence Strategy on multi-ticker data.
+    Signals are computed row-wise (vectorized) — the Ticker column is preserved
+    but does not affect the boolean logic since each row's indicators already 
+    belong to a single company (ensured by the feature engineering step).
     """
     if not os.path.exists(input_path):
         print(f"Error: Processed data not found at {input_path}")
@@ -15,13 +15,15 @@ def apply_strategy(input_path: str = "data/processed_stock_data.csv", output_pat
 
     print("Loading processed data for rule evaluation...")
     df = pd.read_csv(input_path, index_col=0, parse_dates=True)
-    
-    # Define conditions based on confluence (Rule Engine Confluence)
-    
-    # Bull condition:
-    # 1. Trend: Long term MAs aligned + price above 20-day SMA
-    # 2. Oscillators: RSI not overbought, MACD is bullish
-    # 3. Value/Volatility: Price is below the Upper Bollinger Band (not stretched)
+
+    if 'Ticker' not in df.columns:
+        print("Error: 'Ticker' column not found.")
+        return
+
+    print(f"Evaluating rules on {df['Ticker'].nunique()} tickers, {len(df)} rows...")
+
+    # Bull condition (Confluence):
+    # Trend alignment + oscillator confirmation + volatility guard
     bull_condition = (
         (df['Close'] > df['DMA_50']) &
         (df['DMA_50'] > df['DMA_200']) &
@@ -31,11 +33,8 @@ def apply_strategy(input_path: str = "data/processed_stock_data.csv", output_pat
         (df['Close'] <= df['Bollinger_Upper']) &
         (df['Close'] <= df['DMA_200'] * 1.10)
     )
-    
-    # Bear condition:
-    # 1. Trend: Long term MAs aligned + price below 20-day SMA
-    # 2. Oscillators: RSI not oversold, MACD is bearish
-    # 3. Value/Volatility: Price is above the Lower Bollinger Band (not completely flushed out)
+
+    # Bear condition (Confluence):
     bear_condition = (
         (df['Close'] < df['DMA_50']) &
         (df['DMA_50'] < df['DMA_200']) &
@@ -45,21 +44,28 @@ def apply_strategy(input_path: str = "data/processed_stock_data.csv", output_pat
         (df['Close'] >= df['Bollinger_Lower']) &
         (df['Close'] >= df['DMA_200'] * 0.90)
     )
-    
-    # Assign signals based on conditions using np.select
+
     conditions = [bull_condition, bear_condition]
-    choices = [1, -1] # 1 for Buy, -1 for Sell
-    
-    # Default is 0 (Wait)
+    choices = [1, -1]
     df['Rule_Signal'] = np.select(conditions, choices, default=0)
-    
-    print(f"Signal Counts:\n{df['Rule_Signal'].value_counts()}")
-    
-    # Save the output
+
+    # Print per-signal counts
+    signal_counts = df['Rule_Signal'].value_counts()
+    print(f"\nSignal Distribution:")
+    print(f"  Buy  (1) : {signal_counts.get(1, 0)}")
+    print(f"  Wait (0) : {signal_counts.get(0, 0)}")
+    print(f"  Sell (-1): {signal_counts.get(-1, 0)}")
+
+    # Print per-ticker buy signal stats
+    buy_per_ticker = df[df['Rule_Signal'] == 1].groupby('Ticker').size()
+    print(f"\nTickers generating Buy signals: {len(buy_per_ticker)}")
+    print(f"Total Buy signals across all tickers: {buy_per_ticker.sum()}")
+
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df.to_csv(output_path)
-    
-    print(f"Successfully evaluated rules and saved signals to {output_path}")
+
+    print(f"\nSuccessfully saved rule signals to {output_path}")
+
 
 if __name__ == "__main__":
     apply_strategy()

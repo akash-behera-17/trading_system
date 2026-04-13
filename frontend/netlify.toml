@@ -1,0 +1,8 @@
+[build]
+  command = "npm run build"
+  publish = "dist" # Use "build" if this is Create React App, "dist" is for Vite
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

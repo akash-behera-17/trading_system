@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
+import { useAuth } from '../context/useAuth';
 import StockChart from '../components/StockChart';
 import './Dashboard.css';
 
@@ -10,6 +10,7 @@ const Dashboard = () => {
     const ticker = searchParams.get('ticker');
     const [ta, setTa] = useState(null);
     const [aiData, setAiData] = useState(null);
+    const [aiUnavailable, setAiUnavailable] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const navigate = useNavigate();
@@ -19,14 +20,22 @@ const Dashboard = () => {
         const fetchAll = async () => {
             try {
                 setLoading(true);
+                setError('');
+                setAiUnavailable(false);
                 const [taRes, aiRes] = await Promise.allSettled([
-                    axios.get(`http://localhost:5000/api/stocks/technical-analysis?ticker=${ticker}`),
-                    axios.post(`http://localhost:5000/predict`, { ticker })
+                    api.get('/api/stocks/technical-analysis', { params: { ticker } }),
+                    api.post('/predict', { ticker })
                 ]);
                 if (taRes.status === 'fulfilled') setTa(taRes.value.data);
                 else setError('Failed to load technical analysis');
-                if (aiRes.status === 'fulfilled') setAiData(aiRes.value.data);
-            } catch (err) {
+                if (aiRes.status === 'fulfilled') {
+                    setAiData(aiRes.value.data);
+                } else {
+                    setAiData(null);
+                    setAiUnavailable(true);
+                }
+            } catch (fetchError) {
+                console.error('Failed to load dashboard data:', fetchError);
                 setError('Failed to load data');
             } finally {
                 setLoading(false);
@@ -78,6 +87,33 @@ const Dashboard = () => {
     const fibGradients = [
         'rgba(34,197,94,0.15)', 'rgba(96,165,245,0.15)', 'rgba(96,165,245,0.25)',
         'rgba(99,102,241,0.3)', 'rgba(99,102,241,0.45)', 'rgba(99,102,241,0.6)'
+    ];
+
+    const overviewCards = [
+        {
+            label: 'Daily Trend',
+            value: ta.trend.daily,
+            tone: ta.trend.daily.includes('Bullish') ? 'bull' : ta.trend.daily.includes('Bearish') ? 'bear' : 'neutral',
+            detail: ta.trend.monthly
+        },
+        {
+            label: 'RSI Regime',
+            value: ta.rsi.value ? `${ta.rsi.value}` : 'N/A',
+            tone: ta.rsi.value > 70 ? 'bear' : ta.rsi.value < 40 ? 'bull' : 'neutral',
+            detail: ta.rsi.interpretation
+        },
+        {
+            label: 'MACD Status',
+            value: ta.macd.cross === 'bullish' ? 'Bullish crossover' : ta.macd.cross === 'bearish' ? 'Bearish crossover' : 'Neutral',
+            tone: ta.macd.cross === 'bullish' ? 'bull' : ta.macd.cross === 'bearish' ? 'bear' : 'neutral',
+            detail: ta.macd.interpretation
+        },
+        {
+            label: 'Volume Conviction',
+            value: ta.volume.trend === 'high' ? 'High conviction' : ta.volume.trend === 'low' ? 'Low conviction' : 'Average volume',
+            tone: ta.volume.sellers_fading ? 'bull' : ta.volume.trend === 'low' ? 'bear' : 'neutral',
+            detail: ta.volume.interpretation
+        }
     ];
 
     return (
@@ -135,6 +171,22 @@ const Dashboard = () => {
                         <span className="verdict-badge">{verdictBadge}</span>
                     </div>
                 </div>
+            </div>
+
+            {aiUnavailable && (
+                <div className="ai-note">
+                    AI anomaly verification is temporarily unavailable, so this view is showing the technical dashboard only.
+                </div>
+            )}
+
+            <div className="overview-grid">
+                {overviewCards.map((card) => (
+                    <div key={card.label} className={`overview-card ${card.tone}`}>
+                        <div className="overview-label">{card.label}</div>
+                        <div className="overview-value">{card.value}</div>
+                        <div className="overview-detail">{card.detail}</div>
+                    </div>
+                ))}
             </div>
 
             <div className="dash-content">
