@@ -65,7 +65,7 @@ Instead of asking a neural network to predict future prices (a notoriously noisy
 |---|---|
 | **Backend API** | Flask, Flask-CORS, Flask-SQLAlchemy, Flask-Bcrypt, PyJWT |
 | **Frontend** | React 18, Vite, Recharts, React Router |
-| **ML / Deep Learning** | PyTorch (LSTM-Autoencoder), scikit-learn |
+| **ML / Deep Learning** | PyTorch (LSTM-Autoencoder), XGBoost, scikit-learn |
 | **Data & Indicators** | yfinance, pandas, numpy, ta (Technical Analysis) |
 | **Database** | SQLite (user auth) |
 
@@ -81,7 +81,10 @@ Instead of asking a neural network to predict future prices (a notoriously noisy
 │   ├── feature_engineering.py  # Technical indicator calculation (13 features)
 │   ├── fetch_data.py           # Yahoo Finance data acquisition
 │   ├── rule_engine.py          # Symbolic expert rules (Confluence Strategy)
-│   ├── hybrid_evaluation.py    # Backtesting engine with sliding windows
+│   ├── hybrid_evaluation.py    # Baseline backtesting engine
+│   ├── xgboost_classifier.py   # Ensemble ML model for prediction
+│   ├── backtest_engine.py      # Core modular backtesting engine
+│   ├── statistical_validation.py # Tools to benchmark model performance
 │   ├── extensions.py           # Flask extensions (DB, Bcrypt)
 │   ├── models/
 │   │   └── user.py             # User model (SQLAlchemy)
@@ -104,7 +107,9 @@ Instead of asking a neural network to predict future prices (a notoriously noisy
 │
 ├── models/
 │   ├── lstm_autoencoder.pt     # Trained PyTorch model weights
-│   └── scaler.pkl              # Fitted StandardScaler
+│   ├── scaler.pkl              # Fitted StandardScaler
+│   ├── xgboost_classifier.pkl  # Trained XGBoost model parameters
+│   └── xgb_features.pkl        # XGBoost feature set definition
 │
 ├── data/
 │   ├── processed_stock_data.csv
@@ -115,11 +120,12 @@ Instead of asking a neural network to predict future prices (a notoriously noisy
 ├── requirements.txt            # Python dependencies
 ├── REPORT.md                   # Academic project report
 │
-├── er_diagram.html             # Entity-Relationship diagram
-├── dfd_diagrams.html           # Data Flow diagrams
-├── use_case_diagram.html       # Use Case diagram
-├── sequence_diagram.html       # Sequence diagram
-└── class_diagram.html          # Class diagram
+├── diagrams/                   # UML Documentations & Schemas
+│   ├── er_diagram.html         # Entity-Relationship diagram
+│   ├── dfd_diagrams.html       # Data Flow diagrams
+│   ├── use_case_diagram.html   # Use Case diagram
+│   ├── sequence_diagram.html   # Sequence diagram
+│   └── class_diagram.html      # Class diagram
 ```
 
 ---
@@ -255,6 +261,7 @@ An unsupervised anomaly detector trained exclusively on historically proven brea
 | **v1.0** | Core ML System | Phases 1–5: Data pipeline, rule engine, LSTM-Autoencoder, backtesting, CLI inference |
 | **v2.0** | Professional Web UI | Phases 6–10: Flask API, React dashboard, auth system, stock search, interactive charts |
 | **v2.1** | Rule Engine Confluence | Phase 11: Expanded to 13 features, 10-day sequences, multi-factor confluence rules, system-wide pipeline sync |
+| **v2.2** | ML Ensemble & Statistics| Phase 12: Integrated XGBoost, improved statistical validation metrics, isolated backtesting engine |
 
 ---
 
@@ -262,11 +269,11 @@ An unsupervised anomaly detector trained exclusively on historically proven brea
 
 The project includes comprehensive UML diagrams (viewable in browser):
 
-- **ER Diagram** — `er_diagram.html`
-- **Data Flow Diagrams** — `dfd_diagrams.html`
-- **Use Case Diagram** — `use_case_diagram.html`
-- **Sequence Diagram** — `sequence_diagram.html`
-- **Class Diagram** — `class_diagram.html`
+- **ER Diagram** — `diagrams/er_diagram.html`
+- **Data Flow Diagrams** — `diagrams/dfd_diagrams.html`
+- **Use Case Diagram** — `diagrams/use_case_diagram.html`
+- **Sequence Diagram** — `diagrams/sequence_diagram.html`
+- **Class Diagram** — `diagrams/class_diagram.html`
 
 ---
 
