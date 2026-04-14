@@ -12,19 +12,22 @@
 
 ## Overview
 
-This system uses a **Neuro-Symbolic** architecture — combining the explicit knowledge of trading experts (*Symbolic Logic*) with the pattern recognition capabilities of deep learning (*Neural Networks*) — to generate actionable stock trading signals while filtering out false breakouts ("Bull Traps").
+This system uses a **Neuro-Symbolic Ensemble** architecture — combining the explicit knowledge of trading experts (*Symbolic Logic*) with the predictive power of supervised machine learning and deep anomaly detection (*Neural Networks + XGBoost*) — to generate actionable stock trading signals while systematically filtering out false breakouts ("Bull Traps").
 
-Instead of asking a neural network to predict future prices (a notoriously noisy problem), the model is tasked with **validating the structural integrity** of the present technical indicators whenever the rule engine fires a "Buy" signal.
+Instead of asking a single neural network to predict future prices (a notoriously noisy problem), the model uses an **ensemble approach**:
+1. An **LSTM-Autoencoder** validates the structural integrity of the technical indicators.
+2. an **XGBoost Classifier** evaluates historical win probabilities.
 
 ### Key Results
 
 | Metric | Value |
 |---|---|
-| **False Positive Reduction** | ~30.36% |
-| **Bull Traps Avoided** | 17 out of 56 signals |
-| **Hybrid Approved Buys** | 39 verified entries |
-| **Features Used** | 13 (v2.1) |
-| **Sequence Length** | 10-day lookback |
+| **System Total Return** | 143.81% |
+| **System CAGR** | 25.13% |
+| **Sharpe Ratio** | 0.710 |
+| **Baseline B&H CAGR** | 19.48% |
+| **Rule-Only CAGR** | 21.70% |
+| **Features Used** | 13 (v2.2) |
 
 ---
 
@@ -49,10 +52,12 @@ Instead of asking a neural network to predict future prices (a notoriously noisy
 ├──────────┬───────────────────────────────────┬──────────────┤
 │  SELL    │         POTENTIAL BUY              │    WAIT      │
 │  ↓      │              ↓                     │    ↓         │
-│ Action  │    LSTM-Autoencoder Filter          │  Action      │
-│         │    (10-day sequence validation)     │              │
-│         ├──────────────┬──────────────────────┤              │
-│         │ Low Error    │ High Error           │              │
+│ Action  │      Ensemble ML Validation         │  Action      │
+│         │ ┌─────────────────────────┐        │              │
+│         │ │ LSTM-Autoencoder Filter │        │              │
+│         │ │ XGBoost Win Probability │        │              │
+│         │ └────────────┬────────────┘        │              │
+│         │    High Conf │ Low Conf             │              │
 │         │ STRONG BUY ✅│ AVOID (Bull Trap) ⚠️ │              │
 └─────────┴──────────────┴──────────────────────┴──────────────┘
 ```
@@ -243,14 +248,13 @@ A multi-factor deterministic filter inspired by the Mahesh Kaushik strategy, enh
 - `Close ≤ Bollinger Upper` (not overextended)
 - `Close ≤ DMA_200 × 1.10` (within 10% of long-term mean)
 
-### 3. LSTM-Autoencoder (Trap Detector)
+### 3. Ensemble ML Filter (LSTM + XGBoost)
 
-An unsupervised anomaly detector trained exclusively on historically proven breakouts:
+A powerful dual-stage machine learning suite trained on historically proven breakouts:
 
-- **Input**: 10-day sequences × 13 features
-- **Architecture**: `Encoder(LSTM) → Latent Space → Decoder(LSTM)`
-- **Anomaly Threshold**: 70th percentile of reconstruction error (MSE = 0.2928)
-- If a "Buy" signal's reconstruction error exceeds the threshold, it is classified as a **Bull Trap** and vetoed.
+- **Stage 1 (LSTM-Autoencoder)**: Unsupervised anomaly detector. If a "Buy" signal's reconstruction error exceeds the threshold, it is vetoed as abnormal.
+- **Stage 2 (XGBoost Classifier)**: Supervised probability engine. Estimates the categorical win probability of the trade based on the 13 computed features.
+- If the ensemble confirms the trade, it is classified as a **STRONG BUY**. If any models fail to validate, the signal is dropped as a **Bull Trap**.
 
 ---
 
