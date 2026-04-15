@@ -333,13 +333,16 @@ def chart_data():
 
 @stock_bp.route('/market-movers', methods=['GET'])
 def market_movers():
-    """Returns top 5 gainers and top 5 losers from Nifty 50 by today's % change."""
+    """Returns top 5 gainers and top 5 losers from a subset of Nifty 50 to prevent Render timeouts."""
     try:
-        tickers_str = " ".join([s['ticker'] for s in NIFTY_50])
-        data = yf.download(tickers_str, period="2d", progress=False, group_by='ticker')
+        # Fetching 50 stocks concurrently on Render free tier causes long timeouts or IP bans from Yahoo Finance.
+        # We limit to the top 20 most liquid stocks and disable threading.
+        subset = NIFTY_50[:20]
+        tickers_str = " ".join([s['ticker'] for s in subset])
+        data = yf.download(tickers_str, period="2d", progress=False, group_by='ticker', threads=False)
 
         movers = []
-        for stock in NIFTY_50:
+        for stock in subset:
             t = stock['ticker']
             try:
                 if isinstance(data.columns, pd.MultiIndex):
@@ -370,8 +373,8 @@ def market_movers():
         movers.sort(key=lambda x: x['change_pct'], reverse=True)
 
         return jsonify({
-            "gainers": movers[:5],
-            "losers": movers[-5:][::-1]  # reverse so worst first
+            "gainers": movers[:5] if len(movers) >= 5 else movers,
+            "losers": movers[-5:][::-1] if len(movers) >= 5 else movers[::-1]
         })
 
     except Exception as e:
