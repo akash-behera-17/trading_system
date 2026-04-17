@@ -3,5 +3,7 @@ instance/
 __pycache__/
 *.pyc
 .env
+.env.local
+frontend/.env.local
 .gsd/
 gsd-template/

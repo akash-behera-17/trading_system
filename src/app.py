@@ -68,19 +68,37 @@ app.register_blueprint(stock_bp)
 # --- 1. Model Definitions & Setup ---
 
 class LSTMAutoencoder(nn.Module):
-    def __init__(self, seq_len, n_features, embedding_dim=16):
+    """
+    v2.0: Deeper architecture with 2-layer encoder, larger latent space (embedding_dim=32),
+    and dropout for regularization. Must match the trained model in models/lstm_autoencoder.pt.
+    """
+    def __init__(self, seq_len, n_features, embedding_dim=32, dropout=0.2):
         super(LSTMAutoencoder, self).__init__()
         self.seq_len = seq_len
         self.n_features = n_features
         self.embedding_dim = embedding_dim
 
-        self.encoder = nn.LSTM(input_size=n_features, hidden_size=embedding_dim, num_layers=1, batch_first=True)
-        self.decoder = nn.LSTM(input_size=embedding_dim, hidden_size=n_features, num_layers=1, batch_first=True)
+        # Encoder: 2-layer LSTM
+        self.encoder = nn.LSTM(
+            input_size=n_features,
+            hidden_size=embedding_dim,
+            num_layers=2,
+            batch_first=True,
+            dropout=dropout
+        )
+        # Decoder: 1-layer LSTM
+        self.decoder = nn.LSTM(
+            input_size=embedding_dim,
+            hidden_size=n_features,
+            num_layers=1,
+            batch_first=True
+        )
 
     def forward(self, x):
         encoded_out, (hidden_n, cell_n) = self.encoder(x)
-        hidden_n = hidden_n.squeeze(0).unsqueeze(1)
-        hidden_n_repeated = hidden_n.repeat(1, self.seq_len, 1)
+        # Take the last layer's hidden state
+        hidden_n = hidden_n[-1].unsqueeze(1)  # (batch, 1, hidden_size)
+        hidden_n_repeated = hidden_n.repeat(1, self.seq_len, 1)  # (batch, seq_len, hidden_size)
         decoded_out, _ = self.decoder(hidden_n_repeated)
         return decoded_out
 
@@ -100,7 +118,7 @@ try:
     with open(os.path.join(MODEL_DIR, "scaler.pkl"), "rb") as f:
         scaler = pickle.load(f)
         
-    autoencoder_model = LSTMAutoencoder(seq_len=SEQ_LEN, n_features=len(FEATURES), embedding_dim=16)
+    autoencoder_model = LSTMAutoencoder(seq_len=SEQ_LEN, n_features=len(FEATURES), embedding_dim=32, dropout=0.2)
     model_path = os.path.join(MODEL_DIR, "lstm_autoencoder.pt")
     autoencoder_model.load_state_dict(torch.load(model_path, weights_only=True))
     autoencoder_model.eval()
