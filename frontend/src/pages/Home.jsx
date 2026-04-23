@@ -146,7 +146,7 @@ const Home = () => {
                         lineHeight: 1.7, margin: '0 0 40px',
                         textShadow: '0 2px 10px rgba(0,0,0,0.5)'
                     }}>
-                        Combining expert rule-based strategy with LSTM Autoencoder anomaly detection
+                        Combining expert rule-based logic, XGBoost classification, with LSTM Autoencoder anomaly detection
                         to filter bull traps and validate trade setups on Indian markets.
                     </p>
 
@@ -389,7 +389,7 @@ const Home = () => {
                             <Brain style={{ color: '#a78bfa', width: 24, height: 24, marginBottom: '12px' }} />
                             <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '8px', marginTop: 0 }}>Neuro-Symbolic AI</h4>
                             <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, margin: 0 }}>
-                                Expert rules + deep learning combined for institutional-grade signals.
+                                Expert rules, XGBoost + deep learning combined for institutional-grade signals.
                             </p>
                         </div>
                     </div>

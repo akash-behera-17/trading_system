@@ -390,24 +390,6 @@ def get_dashboard_data():
     try:
         stock = yf.Ticker(ticker)
 
-        # 1. Fundamentals
-        info = stock.info
-        fundamentals = {
-            "marketCap": info.get('marketCap', 'N/A'),
-            "fiftyTwoWeekHigh": info.get('fiftyTwoWeekHigh', 'N/A'),
-            "fiftyTwoWeekLow": info.get('fiftyTwoWeekLow', 'N/A'),
-            "trailingPE": info.get('trailingPE', 'N/A'),
-            "priceToBook": info.get('priceToBook', 'N/A'),
-            "currentPrice": info.get('currentPrice', info.get('regularMarketPrice', 'N/A')),
-            "shortName": info.get('shortName', ticker),
-            "sector": info.get('sector', 'N/A'),
-            "industry": info.get('industry', 'N/A'),
-            "previousClose": info.get('previousClose', 'N/A'),
-            "dayHigh": info.get('dayHigh', 'N/A'),
-            "dayLow": info.get('dayLow', 'N/A'),
-        }
-
-        # 2. Historical Data (1 year for DMA200)
         hist = stock.history(period="1y", interval="1d")
         if hist.empty:
             return jsonify({"error": f"No historical data found for {ticker}"}), 404
@@ -417,6 +399,34 @@ def get_dashboard_data():
                 hist.columns = hist.columns.droplevel('Ticker')
             except KeyError:
                 hist.columns = hist.columns.droplevel(1)
+
+        # 1. Fundamentals (Derived from History to bypass strict yfinance blocks)
+        recent_close = hist['Close'].iloc[-1]
+        prev_close_val = hist['Close'].iloc[-2] if len(hist) > 1 else recent_close
+        
+        # Local lookup for name
+        short_name = ticker
+        for n_stock in NIFTY_50:
+            if n_stock['ticker'] == ticker:
+                short_name = n_stock['name']
+                break
+
+        fundamentals = {
+            "marketCap": 'N/A', # Skipping to prevent Yahoo throttling
+            "fiftyTwoWeekHigh": round(float(hist['Close'].max()), 2),
+            "fiftyTwoWeekLow": round(float(hist['Close'].min()), 2),
+            "trailingPE": 'N/A',
+            "priceToBook": 'N/A',
+            "currentPrice": round(float(recent_close), 2),
+            "shortName": short_name,
+            "sector": 'N/A',
+            "industry": 'N/A',
+            "previousClose": round(float(prev_close_val), 2),
+            "dayHigh": round(float(hist['High'].iloc[-1]), 2),
+            "dayLow": round(float(hist['Low'].iloc[-1]), 2),
+        }
+
+        # 2. Historical Data (Proceed as normal)
 
         # 3. Chart Data Formatting
         chart_data = []
@@ -481,7 +491,6 @@ def get_technical_analysis():
 
     try:
         stock = yf.Ticker(ticker)
-        info = stock.info
 
         hist = stock.history(period="1y", interval="1d")
         if hist.empty:
@@ -597,8 +606,8 @@ def get_technical_analysis():
         sellers_fading = len(red_days) <= 2
 
         # --- 52W Range & Fibonacci ---
-        w52_high = float(info.get('fiftyTwoWeekHigh', close.max()))
-        w52_low = float(info.get('fiftyTwoWeekLow', close.min()))
+        w52_high = float(close.max())
+        w52_low = float(close.min())
         fib_range = w52_high - w52_low
 
         fib_levels = {
@@ -664,7 +673,7 @@ def get_technical_analysis():
             return "neutral"
 
         # Calculate daily change
-        prev_close = float(info.get('previousClose', close.iloc[-2] if len(close) > 1 else latest_close))
+        prev_close = float(close.iloc[-2] if len(close) > 1 else latest_close)
         daily_change = round(latest_close - prev_close, 2)
         daily_change_pct = round((daily_change / prev_close) * 100, 2) if prev_close else 0
 
@@ -672,10 +681,17 @@ def get_technical_analysis():
         first_close = float(close.iloc[0])
         one_year_return = round(((latest_close - first_close) / first_close) * 100, 2) if first_close else 0
 
+        # Local lookup for name
+        short_name = ticker
+        for n_stock in NIFTY_50:
+            if n_stock['ticker'] == ticker:
+                short_name = n_stock['name']
+                break
+
         return jsonify({
             "ticker": ticker,
-            "name": info.get('shortName', ticker),
-            "sector": info.get('sector', 'N/A'),
+            "name": short_name,
+            "sector": "N/A",  # Disabled to prevent Yahoo ban
             "date": datetime.now().strftime('%d %b %Y'),
             "price": round(latest_close, 2),
             "daily_change": daily_change,
